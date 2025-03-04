@@ -324,6 +324,13 @@ func New(addr string, deps Dependencies) *Server {
 		)
 	}
 
+	// My activity (authenticated, no RBAC — scoped to own user)
+	if deps.AuditHandler != nil {
+		protectedMux.HandleFunc("GET /api/v1/me/activity",
+			deps.AuditHandler.HandleMyActivity,
+		)
+	}
+
 	// Connector routes (tenant-scoped, RBAC-protected)
 	if deps.ConnectorHandler != nil && deps.RBAC != nil {
 		protectedMux.Handle("POST /api/v1/connectors",
