@@ -7,20 +7,37 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { formatTimeAgo } from "@/lib/format"
 import type { AuditEvent } from "@/lib/types"
 
-export function RecentEvents() {
+interface RecentEventsProps {
+  canReadAudit: boolean
+  hasTenant: boolean
+}
+
+export function RecentEvents({ canReadAudit, hasTenant }: RecentEventsProps) {
+  const endpoint = canReadAudit ? "/api/v1/audit/events" : "/api/v1/me/activity"
+  const queryKey = canReadAudit ? ["audit", "recent"] : ["me", "activity"]
+
   const { data: events, isLoading, isError, error } = useQuery({
-    queryKey: ["audit", "recent"],
+    queryKey,
     queryFn: () =>
-      apiClient<{ count: number; events: AuditEvent[] }>("/api/v1/audit/events", {
+      apiClient<{ count: number; events: AuditEvent[] }>(endpoint, {
         params: { limit: "10" },
       }),
     select: (data) => data.events,
+    enabled: hasTenant,
     refetchInterval: 30_000,
     retry: (failureCount, err) => {
       if (err instanceof ApiError && (err.status === 403 || err.status === 401)) return false
       return failureCount < 3
     },
   })
+
+  if (!hasTenant) {
+    return (
+      <div className="py-8 text-center">
+        <p className="text-sm text-zinc-500">No activity to show yet.</p>
+      </div>
+    )
+  }
 
   if (isLoading) {
     return (
@@ -35,26 +52,23 @@ export function RecentEvents() {
   if (isError && error instanceof ApiError && (error.status === 403 || error.status === 401)) {
     return (
       <div className="py-8 text-center">
-        <p className="text-sm text-zinc-500">You don&apos;t have permission to view audit events.</p>
-        <p className="mt-1 text-xs text-zinc-400">
-          Contact your administrator if you need access.
-        </p>
+        <p className="text-sm text-zinc-500">No activity to show yet.</p>
       </div>
     )
   }
 
   if (isError) {
     return (
-      <p className="text-sm text-zinc-500">Failed to load recent events.</p>
+      <p className="text-sm text-zinc-500">Failed to load recent activity.</p>
     )
   }
 
   if (!events || events.length === 0) {
     return (
       <div className="py-8 text-center">
-        <p className="text-sm text-zinc-500">No audit events recorded yet.</p>
+        <p className="text-sm text-zinc-500">No activity recorded yet.</p>
         <p className="mt-1 text-xs text-zinc-400">
-          Events appear here as users interact with the platform.
+          Activity appears here as you interact with the platform.
         </p>
       </div>
     )
