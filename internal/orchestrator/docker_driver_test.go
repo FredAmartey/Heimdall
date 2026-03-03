@@ -160,6 +160,50 @@ func TestDockerDriver_MemoryVolumeMounts(t *testing.T) {
 	require.NoError(t, driver.Cleanup(ctx, spec.VMID))
 }
 
+func TestDockerDriver_MemoryMounts_AllLayers(t *testing.T) {
+	requireDocker(t)
+
+	tmpDir := t.TempDir()
+	driver := orchestrator.NewDockerDriver(orchestrator.DockerDriverConfig{
+		Image:           "alpine:latest",
+		NetworkMode:     "none",
+		DefaultCPUs:     1,
+		DefaultMemoryMB: 64,
+		MemoryBasePath:  tmpDir,
+		Cmd:             []string{"sleep", "30"},
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	spec := orchestrator.VMSpec{
+		VMID:         "mount-test",
+		TenantID:     "tenant-abc",
+		UserID:       "user-123",
+		DepartmentID: "dept-456",
+		VsockCID:     600,
+		KnowledgeBases: []orchestrator.KBMount{
+			{ID: "kb-001", Name: "transfer-targets"},
+			{ID: "kb-002", Name: "playbook"},
+		},
+	}
+
+	handle, err := driver.Start(ctx, spec)
+	require.NoError(t, err)
+	defer func() {
+		_ = driver.Stop(ctx, spec.VMID)
+		_ = driver.Cleanup(ctx, spec.VMID)
+	}()
+	require.Equal(t, "mount-test", handle.ID)
+
+	// Verify host directories were created
+	require.DirExists(t, filepath.Join(tmpDir, "mount-test", "personal"))
+	require.DirExists(t, filepath.Join(tmpDir, "departments", "dept-456"))
+	require.DirExists(t, filepath.Join(tmpDir, "tenants", "tenant-abc"))
+	require.DirExists(t, filepath.Join(tmpDir, "kbs", "kb-001"))
+	require.DirExists(t, filepath.Join(tmpDir, "kbs", "kb-002"))
+}
+
 func TestDockerDriver_NoMemoryMountsWithoutBasePath(t *testing.T) {
 	requireDocker(t)
 
