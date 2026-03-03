@@ -132,12 +132,14 @@ func run() error {
 	var tenantHandler *tenant.Handler
 	var inviteHandler *tenant.InviteHandler
 	var onboardingHandler *tenant.OnboardingHandler
+	var inviteRedeemHandler *auth.InviteRedeemHandler
 	if pool != nil {
 		tenantStore := tenant.NewStore(pool)
 		tenantHandler = tenant.NewHandler(tenantStore, auditLogger)
 		inviteStore := tenant.NewInviteStore(pool)
 		inviteHandler = tenant.NewInviteHandler(inviteStore)
 		onboardingHandler = tenant.NewOnboardingHandler(tenantStore, authStore)
+		inviteRedeemHandler = auth.NewInviteRedeemHandler(authStore, &inviteRedeemAdapter{store: inviteStore}, tokenSvc)
 	}
 
 	// RBAC
@@ -342,8 +344,9 @@ func run() error {
 		AuditHandler:       auditHandler,
 		ConnectorHandler:   connectorHandler,
 		ChannelHandler:     channelHandler,
-		InviteHandler:      inviteHandler,
-		OnboardingHandler:  onboardingHandler,
+		InviteHandler:       inviteHandler,
+		OnboardingHandler:   onboardingHandler,
+		InviteRedeemHandler: inviteRedeemHandler,
 		RBACAuditLogger:    &rbacAuditAdapter{l: auditLogger},
 		DevMode:            cfg.Auth.DevMode,
 		DevIdentity:        devIdentity,
@@ -667,6 +670,24 @@ func (a *auditAdapter) Log(ctx context.Context, event proxy.AuditEvent) {
 		Metadata:     event.Metadata,
 		Source:       event.Source,
 	})
+}
+
+// inviteRedeemAdapter bridges tenant.InviteStore to auth.InviteRedeemer,
+// converting tenant.Invite to auth.InviteInfo to break the import cycle.
+type inviteRedeemAdapter struct {
+	store *tenant.InviteStore
+}
+
+func (a *inviteRedeemAdapter) GetByCode(ctx context.Context, code string) (*auth.InviteInfo, error) {
+	inv, err := a.store.GetByCode(ctx, code)
+	if err != nil {
+		return nil, err
+	}
+	return &auth.InviteInfo{TenantID: inv.TenantID, Role: inv.Role}, nil
+}
+
+func (a *inviteRedeemAdapter) Redeem(ctx context.Context, code, userID string) error {
+	return a.store.Redeem(ctx, code, userID)
 }
 
 // rbacAuditAdapter bridges audit.Logger to rbac.AuditLogger.

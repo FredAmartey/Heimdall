@@ -1,0 +1,111 @@
+package auth
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+)
+
+// InviteInfo holds the fields needed from a redeemed invite.
+type InviteInfo struct {
+	TenantID string
+	Role     string
+}
+
+// InviteRedeemer abstracts the invite store operations needed for redemption,
+// breaking the import cycle between auth and tenant packages.
+type InviteRedeemer interface {
+	GetByCode(ctx context.Context, code string) (*InviteInfo, error)
+	Redeem(ctx context.Context, code, userID string) error
+}
+
+// InviteRedeemHandler handles invite code redemption — assigns user to a
+// tenant and grants the role embedded in the invite.
+type InviteRedeemHandler struct {
+	authStore *Store
+	invites   InviteRedeemer
+	tokenSvc  *TokenService
+}
+
+func NewInviteRedeemHandler(authStore *Store, invites InviteRedeemer, tokenSvc *TokenService) *InviteRedeemHandler {
+	return &InviteRedeemHandler{
+		authStore: authStore,
+		invites:   invites,
+		tokenSvc:  tokenSvc,
+	}
+}
+
+func (h *InviteRedeemHandler) HandleRedeem(w http.ResponseWriter, r *http.Request) {
+	identity := GetIdentity(r.Context())
+	if identity == nil {
+		writeAuthError(w, http.StatusUnauthorized, "authentication required")
+		return
+	}
+
+	var req struct {
+		Code string `json:"code"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Code == "" {
+		writeAuthError(w, http.StatusBadRequest, "invite code required")
+		return
+	}
+
+	// Get invite
+	inv, err := h.invites.GetByCode(r.Context(), req.Code)
+	if err != nil {
+		writeAuthError(w, http.StatusNotFound, err.Error())
+		return
+	}
+
+	// Redeem (validates expiry, used status)
+	if err := h.invites.Redeem(r.Context(), req.Code, identity.UserID); err != nil {
+		writeAuthError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// Assign user to tenant
+	if err := h.authStore.UpdateUserTenant(r.Context(), identity.UserID, inv.TenantID); err != nil {
+		writeAuthError(w, http.StatusInternalServerError, "failed to assign user to tenant")
+		return
+	}
+
+	// Assign the invite's role
+	if err := h.authStore.AssignRole(r.Context(), identity.UserID, inv.TenantID, inv.Role); err != nil {
+		writeAuthError(w, http.StatusInternalServerError, "failed to assign role")
+		return
+	}
+
+	// Re-issue tokens with updated tenant
+	updatedIdentity, err := h.authStore.GetIdentityWithRoles(r.Context(), identity.UserID)
+	if err != nil {
+		writeAuthError(w, http.StatusInternalServerError, "failed to load updated identity")
+		return
+	}
+
+	accessToken, err := h.tokenSvc.CreateAccessToken(updatedIdentity)
+	if err != nil {
+		writeAuthError(w, http.StatusInternalServerError, "failed to create access token")
+		return
+	}
+
+	refreshToken, err := h.tokenSvc.CreateRefreshToken(updatedIdentity)
+	if err != nil {
+		writeAuthError(w, http.StatusInternalServerError, "failed to create refresh token")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"token_type":    "Bearer",
+		"expires_in":    86400,
+		"user": map[string]interface{}{
+			"id":                updatedIdentity.UserID,
+			"email":             updatedIdentity.Email,
+			"display_name":      updatedIdentity.DisplayName,
+			"tenant_id":         updatedIdentity.TenantID,
+			"is_platform_admin": updatedIdentity.IsPlatformAdmin,
+		},
+	})
+}

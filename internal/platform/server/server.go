@@ -37,8 +37,9 @@ type Dependencies struct {
 	AuditHandler       *audit.Handler
 	ConnectorHandler   *connectors.Handler
 	ChannelHandler     *channels.Handler
-	InviteHandler      *tenant.InviteHandler
-	OnboardingHandler  *tenant.OnboardingHandler
+	InviteHandler       *tenant.InviteHandler
+	OnboardingHandler   *tenant.OnboardingHandler
+	InviteRedeemHandler *auth.InviteRedeemHandler
 	RBACAuditLogger    rbac.AuditLogger
 	DevMode            bool
 	DevIdentity        *auth.Identity
@@ -304,6 +305,13 @@ func New(addr string, deps Dependencies) *Server {
 			rbac.RequirePermission(deps.RBAC, "invites:write", rbacOpts...)(
 				http.HandlerFunc(deps.InviteHandler.HandleDelete),
 			),
+		)
+	}
+
+	// Invite redemption (authenticated, no RBAC — any authed user can redeem)
+	if deps.InviteRedeemHandler != nil {
+		protectedMux.HandleFunc("POST /auth/invite/redeem",
+			deps.InviteRedeemHandler.HandleRedeem,
 		)
 	}
 
