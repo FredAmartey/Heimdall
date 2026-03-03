@@ -37,6 +37,7 @@ type Dependencies struct {
 	AuditHandler       *audit.Handler
 	ConnectorHandler   *connectors.Handler
 	ChannelHandler     *channels.Handler
+	InviteHandler      *tenant.InviteHandler
 	RBACAuditLogger    rbac.AuditLogger
 	DevMode            bool
 	DevIdentity        *auth.Identity
@@ -275,6 +276,25 @@ func New(addr string, deps Dependencies) *Server {
 		protectedMux.Handle("GET /api/v1/users/{id}/roles",
 			rbac.RequirePermission(deps.RBAC, "users:read", rbacOpts...)(
 				http.HandlerFunc(deps.RoleHandler.HandleListUserRoles),
+			),
+		)
+	}
+
+	// Invite routes (tenant-scoped, RBAC-protected)
+	if deps.InviteHandler != nil && deps.RBAC != nil {
+		protectedMux.Handle("POST /api/v1/invites",
+			rbac.RequirePermission(deps.RBAC, "invites:write", rbacOpts...)(
+				http.HandlerFunc(deps.InviteHandler.HandleCreate),
+			),
+		)
+		protectedMux.Handle("GET /api/v1/invites",
+			rbac.RequirePermission(deps.RBAC, "invites:read", rbacOpts...)(
+				http.HandlerFunc(deps.InviteHandler.HandleList),
+			),
+		)
+		protectedMux.Handle("DELETE /api/v1/invites/{id}",
+			rbac.RequirePermission(deps.RBAC, "invites:write", rbacOpts...)(
+				http.HandlerFunc(deps.InviteHandler.HandleDelete),
 			),
 		)
 	}

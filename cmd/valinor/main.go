@@ -130,9 +130,12 @@ func run() error {
 
 	// Tenant provisioning
 	var tenantHandler *tenant.Handler
+	var inviteHandler *tenant.InviteHandler
 	if pool != nil {
 		tenantStore := tenant.NewStore(pool)
 		tenantHandler = tenant.NewHandler(tenantStore, auditLogger)
+		inviteStore := tenant.NewInviteStore(pool)
+		inviteHandler = tenant.NewInviteHandler(inviteStore)
 	}
 
 	// RBAC
@@ -337,6 +340,7 @@ func run() error {
 		AuditHandler:       auditHandler,
 		ConnectorHandler:   connectorHandler,
 		ChannelHandler:     channelHandler,
+		InviteHandler:      inviteHandler,
 		RBACAuditLogger:    &rbacAuditAdapter{l: auditLogger},
 		DevMode:            cfg.Auth.DevMode,
 		DevIdentity:        devIdentity,
