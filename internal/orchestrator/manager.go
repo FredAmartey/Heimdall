@@ -26,14 +26,15 @@ type ManagerConfig struct {
 
 // Manager orchestrates VM lifecycles.
 type Manager struct {
-	driver VMDriver
-	store  *Store
-	pool   *database.Pool
-	cfg    ManagerConfig
-	mu     sync.Mutex // protects CID allocation
+	driver  VMDriver
+	store   *Store
+	kbStore *KBStore
+	pool    *database.Pool
+	cfg     ManagerConfig
+	mu      sync.Mutex // protects CID allocation
 }
 
-func NewManager(pool *database.Pool, driver VMDriver, store *Store, cfg ManagerConfig) *Manager {
+func NewManager(pool *database.Pool, driver VMDriver, store *Store, kbStore *KBStore, cfg ManagerConfig) *Manager {
 	if cfg.WarmPoolSize < 0 {
 		cfg.WarmPoolSize = 2
 	}
@@ -50,10 +51,11 @@ func NewManager(pool *database.Pool, driver VMDriver, store *Store, cfg ManagerC
 		cfg.WorkspaceDataQuotaMB = 0
 	}
 	return &Manager{
-		driver: driver,
-		store:  store,
-		pool:   pool,
-		cfg:    cfg,
+		driver:  driver,
+		store:   store,
+		kbStore: kbStore,
+		pool:    pool,
+		cfg:     cfg,
 	}
 }
 
@@ -128,6 +130,24 @@ func (m *Manager) coldStart(ctx context.Context, tenantID string, opts Provision
 		TenantID:         tenantID,
 		VsockCID:         cid,
 		DataDriveQuotaMB: m.cfg.WorkspaceDataQuotaMB,
+	}
+
+	// Pass identity for memory volume mounts.
+	if opts.UserID != nil {
+		spec.UserID = *opts.UserID
+	}
+	if opts.DepartmentID != nil {
+		spec.DepartmentID = *opts.DepartmentID
+	}
+
+	// Resolve granted knowledge bases for shared memory mounts.
+	if spec.UserID != "" && spec.DepartmentID != "" {
+		kbs, kbErr := m.kbStore.GrantsForUser(ctx, m.pool, tenantID, spec.UserID, spec.DepartmentID)
+		if kbErr != nil {
+			slog.Warn("failed to resolve knowledge base grants, skipping shared mounts", "error", kbErr)
+		} else {
+			spec.KnowledgeBases = kbs
+		}
 	}
 
 	handle, err := m.driver.Start(ctx, spec)
