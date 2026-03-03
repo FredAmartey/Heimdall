@@ -58,6 +58,23 @@ func (s *Store) GetByID(ctx context.Context, id string) (*Tenant, error) {
 	return &t, nil
 }
 
+// GetStats returns aggregate resource counts for a tenant.
+func (s *Store) GetStats(ctx context.Context, tenantID string) (*TenantStats, error) {
+	var stats TenantStats
+	err := s.pool.QueryRow(ctx,
+		`SELECT
+			(SELECT COUNT(*) FROM users WHERE tenant_id = $1),
+			(SELECT COUNT(*) FROM departments WHERE tenant_id = $1),
+			(SELECT COUNT(*) FROM agent_instances WHERE tenant_id = $1),
+			(SELECT COUNT(*) FROM connectors WHERE tenant_id = $1)`,
+		tenantID,
+	).Scan(&stats.Users, &stats.Departments, &stats.Agents, &stats.Connectors)
+	if err != nil {
+		return nil, fmt.Errorf("getting tenant stats: %w", err)
+	}
+	return &stats, nil
+}
+
 // List returns all tenants.
 func (s *Store) List(ctx context.Context) ([]Tenant, error) {
 	rows, err := s.pool.Query(ctx,

@@ -52,28 +52,28 @@ export function TenantDetail({ id }: { id: string }) {
           <Users size={20} className="text-zinc-400" />
           <div>
             <p className="text-xs text-zinc-500">Users</p>
-            <p className="text-lg font-semibold text-zinc-900">--</p>
+            <p className="text-lg font-semibold text-zinc-900">{tenant.stats?.users ?? "--"}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4">
           <TreeStructure size={20} className="text-zinc-400" />
           <div>
             <p className="text-xs text-zinc-500">Departments</p>
-            <p className="text-lg font-semibold text-zinc-900">--</p>
+            <p className="text-lg font-semibold text-zinc-900">{tenant.stats?.departments ?? "--"}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4">
           <Robot size={20} className="text-zinc-400" />
           <div>
             <p className="text-xs text-zinc-500">Agents</p>
-            <p className="text-lg font-semibold text-zinc-900">--</p>
+            <p className="text-lg font-semibold text-zinc-900">{tenant.stats?.agents ?? "--"}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4">
           <Plugs size={20} className="text-zinc-400" />
           <div>
             <p className="text-xs text-zinc-500">Connectors</p>
-            <p className="text-lg font-semibold text-zinc-900">--</p>
+            <p className="text-lg font-semibold text-zinc-900">{tenant.stats?.connectors ?? "--"}</p>
           </div>
         </div>
       </div>
