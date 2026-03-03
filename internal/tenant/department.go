@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	ErrDepartmentNotFound  = errors.New("department not found")
-	ErrDepartmentNameEmpty = errors.New("department name is required")
+	ErrDepartmentNotFound   = errors.New("department not found")
+	ErrDepartmentNameEmpty  = errors.New("department name is required")
+	ErrDepartmentSelfParent = errors.New("department cannot be its own parent")
 )
 
 // Department represents a department within a tenant.
