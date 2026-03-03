@@ -59,8 +59,8 @@ func (s *Store) GetByID(ctx context.Context, id string) (*Tenant, error) {
 }
 
 // GetStats returns aggregate resource counts for a tenant.
-func (s *Store) GetStats(ctx context.Context, tenantID string) (*TenantStats, error) {
-	var stats TenantStats
+func (s *Store) GetStats(ctx context.Context, tenantID string) (*Stats, error) {
+	var stats Stats
 	err := s.pool.QueryRow(ctx,
 		`SELECT
 			(SELECT COUNT(*) FROM users WHERE tenant_id = $1),

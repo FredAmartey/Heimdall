@@ -15,17 +15,17 @@ var (
 
 // Tenant represents a tenant in the system.
 type Tenant struct {
-	ID        string       `json:"id"`
-	Name      string       `json:"name"`
-	Slug      string       `json:"slug"`
-	Status    string       `json:"status"`
-	CreatedAt time.Time    `json:"created_at"`
-	UpdatedAt time.Time    `json:"updated_at"`
-	Stats     *TenantStats `json:"stats,omitempty"`
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Slug      string    `json:"slug"`
+	Status    string    `json:"status"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Stats     *Stats    `json:"stats,omitempty"`
 }
 
-// TenantStats holds aggregate counts for a tenant's resources.
-type TenantStats struct {
+// Stats holds aggregate counts for a tenant's resources.
+type Stats struct {
 	Users       int `json:"users"`
 	Departments int `json:"departments"`
 	Agents      int `json:"agents"`
