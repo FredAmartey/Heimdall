@@ -93,7 +93,7 @@ func newTestDeps() (server.Dependencies, *auth.TokenService) {
 	// Wire a minimal agent handler (nil pool — will fail on DB calls but routes exist)
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
-	mgr := orchestrator.NewManager(nil, driver, store, orchestrator.ManagerConfig{Driver: "mock"})
+	mgr := orchestrator.NewManager(nil, driver, store, orchestrator.NewKBStore(), orchestrator.ManagerConfig{Driver: "mock"})
 	agentHandler := orchestrator.NewHandler(mgr, nil, nil, nil, nil)
 	connectorHandler := connectors.NewHandler(nil, connectors.NewStore())
 	channelHandler := channels.NewHandler(nil)

@@ -24,7 +24,7 @@ func TestIntegration_FullLifecycle(t *testing.T) {
 		WarmPoolSize:           2,
 		MaxConsecutiveFailures: 2,
 	}
-	mgr := orchestrator.NewManager(pool, driver, store, cfg)
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), cfg)
 	ctx := context.Background()
 
 	// 1. Create tenant

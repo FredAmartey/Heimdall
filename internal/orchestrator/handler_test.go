@@ -39,7 +39,7 @@ func TestHandler_Provision(t *testing.T) {
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
 	cfg := orchestrator.ManagerConfig{Driver: "mock"}
-	mgr := orchestrator.NewManager(pool, driver, store, cfg)
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), cfg)
 	handler := orchestrator.NewHandler(mgr, nil, nil, nil, nil)
 	ctx := context.Background()
 
@@ -77,7 +77,7 @@ func TestHandler_Provision_BindsIdentityUserForNonAdmin(t *testing.T) {
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
 	cfg := orchestrator.ManagerConfig{Driver: "mock"}
-	mgr := orchestrator.NewManager(pool, driver, store, cfg)
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), cfg)
 	handler := orchestrator.NewHandler(mgr, nil, nil, nil, nil)
 	ctx := context.Background()
 
@@ -111,7 +111,7 @@ func TestHandler_Provision_AllowsAdminUserOverride(t *testing.T) {
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
 	cfg := orchestrator.ManagerConfig{Driver: "mock"}
-	mgr := orchestrator.NewManager(pool, driver, store, cfg)
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), cfg)
 	handler := orchestrator.NewHandler(mgr, nil, nil, nil, nil)
 	ctx := context.Background()
 
@@ -145,7 +145,7 @@ func TestHandler_Provision_RejectsNonAdminUserSpoofing(t *testing.T) {
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
 	cfg := orchestrator.ManagerConfig{Driver: "mock"}
-	mgr := orchestrator.NewManager(pool, driver, store, cfg)
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), cfg)
 	handler := orchestrator.NewHandler(mgr, nil, nil, nil, nil)
 	ctx := context.Background()
 
@@ -173,7 +173,7 @@ func TestHandler_GetAgent(t *testing.T) {
 
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
-	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.ManagerConfig{Driver: "mock"})
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), orchestrator.ManagerConfig{Driver: "mock"})
 	handler := orchestrator.NewHandler(mgr, nil, nil, nil, nil)
 	ctx := context.Background()
 
@@ -207,7 +207,7 @@ func TestHandler_GetAgent_WrongTenant(t *testing.T) {
 
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
-	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.ManagerConfig{Driver: "mock"})
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), orchestrator.ManagerConfig{Driver: "mock"})
 	handler := orchestrator.NewHandler(mgr, nil, nil, nil, nil)
 	ctx := context.Background()
 
@@ -247,7 +247,7 @@ func TestHandler_Configure(t *testing.T) {
 
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
-	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.ManagerConfig{Driver: "mock"})
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), orchestrator.ManagerConfig{Driver: "mock"})
 	handler := orchestrator.NewHandler(mgr, nil, nil, nil, nil)
 	ctx := context.Background()
 
@@ -294,7 +294,7 @@ func TestHandler_Configure_RejectsInsecureRuntimePolicy(t *testing.T) {
 
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
-	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.ManagerConfig{Driver: "mock"})
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), orchestrator.ManagerConfig{Driver: "mock"})
 	handler := orchestrator.NewHandler(mgr, nil, nil, nil, nil)
 	ctx := context.Background()
 
@@ -391,7 +391,7 @@ func TestHandler_Configure_InjectsConnectors(t *testing.T) {
 
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
-	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.ManagerConfig{Driver: "mock"})
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), orchestrator.ManagerConfig{Driver: "mock"})
 
 	pusher := &mockConfigPusher{}
 	lister := &mockConnectorLister{items: []connectors.AgentConnectorConfig{
@@ -433,7 +433,7 @@ func TestHandler_Provision_InjectsConnectors(t *testing.T) {
 
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
-	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.ManagerConfig{Driver: "mock"})
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), orchestrator.ManagerConfig{Driver: "mock"})
 
 	pusher := &mockConfigPusher{}
 	lister := &mockConnectorLister{items: []connectors.AgentConnectorConfig{
@@ -471,7 +471,7 @@ func TestHandler_DestroyAgent(t *testing.T) {
 
 	driver := orchestrator.NewMockDriver()
 	store := orchestrator.NewStore()
-	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.ManagerConfig{Driver: "mock"})
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), orchestrator.ManagerConfig{Driver: "mock"})
 	handler := orchestrator.NewHandler(mgr, nil, nil, nil, nil)
 	ctx := context.Background()
 

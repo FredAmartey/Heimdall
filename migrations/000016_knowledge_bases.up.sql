@@ -11,6 +11,7 @@ CREATE TABLE knowledge_bases (
 );
 
 CREATE INDEX idx_knowledge_bases_tenant_id ON knowledge_bases(tenant_id);
+CREATE UNIQUE INDEX idx_knowledge_bases_tenant_name ON knowledge_bases(tenant_id, name);
 
 ALTER TABLE knowledge_bases ENABLE ROW LEVEL SECURITY;
 
