@@ -100,6 +100,18 @@ func (d *DockerDriver) Start(ctx context.Context, spec VMSpec) (VMHandle, error)
 
 	netCfg := &network.NetworkingConfig{}
 
+	// Per-tenant network isolation: create/reuse an internal bridge network per tenant.
+	if d.cfg.NetworkMode == "per-tenant" && spec.TenantID != "" {
+		containerCfg.Labels[dockerTenantLabel] = spec.TenantID
+		netID, netErr := d.ensureTenantNetwork(ctx, spec.TenantID)
+		if netErr != nil {
+			return VMHandle{}, netErr
+		}
+		netCfg.EndpointsConfig = map[string]*network.EndpointSettings{
+			fmt.Sprintf("valinor-net-%s", spec.TenantID): {NetworkID: netID},
+		}
+	}
+
 	resp, err := d.cli.ContainerCreate(ctx, containerCfg, hostCfg, netCfg, nil, containerName)
 	if err != nil {
 		return VMHandle{}, fmt.Errorf("creating container %s: %w", containerName, err)
@@ -176,4 +188,35 @@ func (d *DockerDriver) Cleanup(ctx context.Context, id string) error {
 
 	slog.Info("docker container cleaned up", "container", containerName)
 	return nil
+}
+
+// ensureTenantNetwork creates an internal Docker bridge network for the tenant
+// if it doesn't already exist. Returns the network ID.
+func (d *DockerDriver) ensureTenantNetwork(ctx context.Context, tenantID string) (string, error) {
+	networkName := fmt.Sprintf("valinor-net-%s", tenantID)
+
+	networks, err := d.cli.NetworkList(ctx, network.ListOptions{})
+	if err != nil {
+		return "", fmt.Errorf("listing networks: %w", err)
+	}
+	for _, n := range networks {
+		if n.Name == networkName {
+			return n.ID, nil
+		}
+	}
+
+	resp, err := d.cli.NetworkCreate(ctx, networkName, network.CreateOptions{
+		Driver:   "bridge",
+		Internal: true, // no external access
+		Labels: map[string]string{
+			dockerContainerLabel: "network",
+			dockerTenantLabel:    tenantID,
+		},
+	})
+	if err != nil {
+		return "", fmt.Errorf("creating network %s: %w", networkName, err)
+	}
+
+	slog.Info("created tenant network", "network", networkName, "id", resp.ID[:12])
+	return resp.ID, nil
 }

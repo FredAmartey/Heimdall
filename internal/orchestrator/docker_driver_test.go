@@ -57,3 +57,60 @@ func TestDockerDriver_Start_Integration(t *testing.T) {
 	require.NoError(t, driver.Stop(ctx, spec.VMID))
 	require.NoError(t, driver.Cleanup(ctx, spec.VMID))
 }
+
+func TestDockerDriver_PerTenantNetwork(t *testing.T) {
+	requireDocker(t)
+
+	driver := orchestrator.NewDockerDriver(orchestrator.DockerDriverConfig{
+		Image:           "alpine:latest",
+		NetworkMode:     "per-tenant",
+		DefaultCPUs:     1,
+		DefaultMemoryMB: 128,
+		Cmd:             []string{"sleep", "30"},
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	spec := orchestrator.VMSpec{
+		VMID:     "test-net-iso",
+		TenantID: "tenant-abc",
+		VsockCID: 200,
+	}
+
+	handle, err := driver.Start(ctx, spec)
+	require.NoError(t, err)
+	require.NotEmpty(t, handle.ID)
+
+	// Cleanup
+	require.NoError(t, driver.Stop(ctx, spec.VMID))
+	require.NoError(t, driver.Cleanup(ctx, spec.VMID))
+}
+
+func TestDockerDriver_NoNetworkForWarmVM(t *testing.T) {
+	requireDocker(t)
+
+	driver := orchestrator.NewDockerDriver(orchestrator.DockerDriverConfig{
+		Image:           "alpine:latest",
+		NetworkMode:     "per-tenant",
+		DefaultCPUs:     1,
+		DefaultMemoryMB: 128,
+		Cmd:             []string{"sleep", "30"},
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	// Warm VM has no tenant — should still start successfully
+	spec := orchestrator.VMSpec{
+		VMID:     "test-warm-no-net",
+		VsockCID: 201,
+	}
+
+	handle, err := driver.Start(ctx, spec)
+	require.NoError(t, err)
+	require.NotEmpty(t, handle.ID)
+
+	require.NoError(t, driver.Stop(ctx, spec.VMID))
+	require.NoError(t, driver.Cleanup(ctx, spec.VMID))
+}

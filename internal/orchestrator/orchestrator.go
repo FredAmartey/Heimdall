@@ -37,6 +37,7 @@ type VMDriver interface {
 // VMSpec describes the configuration for a new VM.
 type VMSpec struct {
 	VMID             string
+	TenantID         string // tenant owning this VM (empty for warm pool)
 	RootDrive        string
 	DataDrive        string
 	DataDriveQuotaMB int
