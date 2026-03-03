@@ -38,6 +38,7 @@ type Dependencies struct {
 	ConnectorHandler   *connectors.Handler
 	ChannelHandler     *channels.Handler
 	InviteHandler      *tenant.InviteHandler
+	OnboardingHandler  *tenant.OnboardingHandler
 	RBACAuditLogger    rbac.AuditLogger
 	DevMode            bool
 	DevIdentity        *auth.Identity
@@ -165,6 +166,13 @@ func New(addr string, deps Dependencies) *Server {
 		)
 		protectedMux.Handle("GET /api/v1/tenants",
 			auth.RequirePlatformAdmin(http.HandlerFunc(deps.TenantHandler.HandleList)),
+		)
+	}
+
+	// Self-service tenant creation (authenticated, tenantless users)
+	if deps.OnboardingHandler != nil {
+		protectedMux.HandleFunc("POST /api/v1/tenants/self-service",
+			deps.OnboardingHandler.HandleSelfServiceCreate,
 		)
 	}
 

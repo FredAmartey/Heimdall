@@ -131,11 +131,13 @@ func run() error {
 	// Tenant provisioning
 	var tenantHandler *tenant.Handler
 	var inviteHandler *tenant.InviteHandler
+	var onboardingHandler *tenant.OnboardingHandler
 	if pool != nil {
 		tenantStore := tenant.NewStore(pool)
 		tenantHandler = tenant.NewHandler(tenantStore, auditLogger)
 		inviteStore := tenant.NewInviteStore(pool)
 		inviteHandler = tenant.NewInviteHandler(inviteStore)
+		onboardingHandler = tenant.NewOnboardingHandler(tenantStore, authStore)
 	}
 
 	// RBAC
@@ -341,6 +343,7 @@ func run() error {
 		ConnectorHandler:   connectorHandler,
 		ChannelHandler:     channelHandler,
 		InviteHandler:      inviteHandler,
+		OnboardingHandler:  onboardingHandler,
 		RBACAuditLogger:    &rbacAuditAdapter{l: auditLogger},
 		DevMode:            cfg.Auth.DevMode,
 		DevIdentity:        devIdentity,
