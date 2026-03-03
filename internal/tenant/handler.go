@@ -94,6 +94,13 @@ func (h *Handler) HandleGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	stats, err := h.store.GetStats(r.Context(), id)
+	if err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "fetching tenant stats failed"})
+		return
+	}
+	t.Stats = stats
+
 	writeJSON(w, http.StatusOK, t)
 }
 

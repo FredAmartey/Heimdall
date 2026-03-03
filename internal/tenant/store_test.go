@@ -187,6 +187,28 @@ func TestStore_List(t *testing.T) {
 	assert.Len(t, tenants, 2)
 }
 
+func TestStore_GetStats(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	pool, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	store := tenant.NewStore(pool)
+	ctx := context.Background()
+
+	created, err := store.Create(ctx, "Chelsea FC", "chelsea-fc")
+	require.NoError(t, err)
+
+	stats, err := store.GetStats(ctx, created.ID)
+	require.NoError(t, err)
+	assert.Equal(t, 0, stats.Users)
+	assert.Equal(t, 0, stats.Departments)
+	assert.Equal(t, 0, stats.Agents)
+	assert.Equal(t, 0, stats.Connectors)
+}
+
 func TestValidateSlug(t *testing.T) {
 	tests := []struct {
 		slug    string
