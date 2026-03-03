@@ -264,7 +264,9 @@ func (d *DockerDriver) cleanupTenantNetwork(ctx context.Context, tenantID string
 func (d *DockerDriver) ensureTenantNetwork(ctx context.Context, tenantID string) (string, error) {
 	networkName := fmt.Sprintf("valinor-net-%s", tenantID)
 
-	labelFilter := filters.NewArgs(filters.Arg("label", dockerContainerLabel))
+	labelFilter := filters.NewArgs(
+		filters.Arg("label", fmt.Sprintf("%s=%s", dockerTenantLabel, tenantID)),
+	)
 	networks, err := d.cli.NetworkList(ctx, network.ListOptions{Filters: labelFilter})
 	if err != nil {
 		return "", fmt.Errorf("listing networks: %w", err)
