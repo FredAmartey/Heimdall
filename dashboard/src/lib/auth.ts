@@ -120,25 +120,50 @@ export const authConfig: NextAuthConfig = {
         ]
       : []),
 
-    // Production OIDC via Clerk (when AUTH_CLERK_ISSUER is set)
+    // Clerk headless auth (when AUTH_CLERK_ISSUER is set)
     ...(process.env.AUTH_CLERK_ISSUER
       ? [
-          {
-            id: "clerk",
-            name: "Clerk",
-            type: "oidc" as const,
-            issuer: process.env.AUTH_CLERK_ISSUER,
-            clientId: process.env.AUTH_CLERK_ID!,
-            clientSecret: process.env.AUTH_CLERK_SECRET!,
-          },
+          Credentials({
+            id: "clerk-token",
+            credentials: {
+              token: { label: "Clerk Session Token", type: "text" },
+              tenantSlug: { label: "Tenant Slug", type: "text" },
+            },
+            async authorize(credentials) {
+              if (!credentials?.token) return null
+
+              const data = await exchangeIDToken(
+                credentials.token as string,
+                (credentials.tenantSlug as string) || undefined,
+              )
+              if (!data) return null
+
+              const roles = decodeJwtRoles(data.access_token)
+              return {
+                id: data.user.id,
+                email: data.user.email,
+                name: data.user.display_name ?? data.user.email,
+                tenantId: data.user.tenant_id ?? null,
+                isPlatformAdmin: data.user.is_platform_admin ?? false,
+                accessToken: data.access_token,
+                refreshToken: data.refresh_token,
+                expiresIn: data.expires_in ?? 3600,
+                roles,
+              }
+            },
+          }),
         ]
       : []),
   ],
   callbacks: {
     authorized({ auth, request }) {
       const isLoggedIn = !!auth?.user
-      const isOnLogin = request.nextUrl.pathname.startsWith("/login")
-      if (isOnLogin) return true
+      const path = request.nextUrl.pathname
+      const isPublicAuth =
+        path.startsWith("/login") ||
+        path.startsWith("/signup") ||
+        path.startsWith("/sso-callback")
+      if (isPublicAuth) return true
       return isLoggedIn
     },
     async jwt({ token, user, account }) {
@@ -154,21 +179,15 @@ export const authConfig: NextAuthConfig = {
         return token
       }
 
-      // Initial sign-in from OIDC (Clerk) — exchange id_token for Valinor tokens
-      if (account?.provider === "clerk" && account.id_token) {
-        const tenantSlug = process.env.NEXT_PUBLIC_TENANT_SLUG
-        const data = await exchangeIDToken(account.id_token, tenantSlug)
-        if (!data) {
-          throw new Error("Valinor token exchange failed")
-        }
-        const roles = decodeJwtRoles(data.access_token)
-        token.accessToken = data.access_token
-        token.refreshToken = data.refresh_token
-        token.expiresAt = Math.floor(Date.now() / 1000) + (data.expires_in ?? 3600)
-        token.userId = data.user.id
-        token.tenantId = data.user.tenant_id ?? null
-        token.isPlatformAdmin = data.user.is_platform_admin ?? false
-        token.roles = roles
+      // Initial sign-in from Clerk headless (clerk-token credentials)
+      if (user && account?.provider === "clerk-token") {
+        token.accessToken = user.accessToken
+        token.refreshToken = user.refreshToken
+        token.expiresAt = Math.floor(Date.now() / 1000) + (user.expiresIn ?? 3600)
+        token.userId = user.id ?? ""
+        token.tenantId = user.tenantId ?? null
+        token.isPlatformAdmin = user.isPlatformAdmin ?? false
+        token.roles = user.roles ?? []
         return token
       }
 
