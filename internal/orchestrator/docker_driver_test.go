@@ -202,6 +202,10 @@ func TestDockerDriver_MemoryMounts_AllLayers(t *testing.T) {
 	require.DirExists(t, filepath.Join(tmpDir, "tenants", "tenant-abc"))
 	require.DirExists(t, filepath.Join(tmpDir, "kbs", "kb-001"))
 	require.DirExists(t, filepath.Join(tmpDir, "kbs", "kb-002"))
+
+	// NOTE: ReadOnly flags (personal=rw, dept/tenant/shared=ro) are set on the
+	// Docker mount config but cannot be asserted without inspecting the running
+	// container's mount table, which requires Docker daemon access.
 }
 
 func TestDockerDriver_NoMemoryMountsWithoutBasePath(t *testing.T) {

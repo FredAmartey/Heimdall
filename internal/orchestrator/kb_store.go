@@ -17,6 +17,7 @@ func NewKBStore() *KBStore {
 
 // GrantsForUser returns all knowledge bases granted to a user, either directly,
 // via their department, or via their roles. Uses the owner pool (no RLS).
+// SECURITY: tenantID must be sourced from an authenticated session, never from user input.
 func (s *KBStore) GrantsForUser(ctx context.Context, q database.Querier, tenantID, userID, departmentID string) ([]KBMount, error) {
 	rows, err := q.Query(ctx,
 		`SELECT DISTINCT kb.id, kb.name

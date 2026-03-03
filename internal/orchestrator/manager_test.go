@@ -82,6 +82,45 @@ func TestManager_Provision_ReusesRunningUserAgent(t *testing.T) {
 	assert.Equal(t, 0, driver.RunningCount(), "provision should not cold-start when user agent already exists")
 }
 
+func TestManager_Provision_ColdStart_UserWithoutDepartment(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping integration test")
+	}
+
+	pool, cleanup := setupTestDB(t)
+	defer cleanup()
+
+	driver := orchestrator.NewMockDriver()
+	store := orchestrator.NewStore()
+	cfg := orchestrator.ManagerConfig{Driver: "mock", WarmPoolSize: 0}
+	mgr := orchestrator.NewManager(pool, driver, store, orchestrator.NewKBStore(), cfg)
+	ctx := context.Background()
+
+	var tenantID string
+	err := pool.QueryRow(ctx,
+		"INSERT INTO tenants (name, slug) VALUES ('NoDept', 'nodept') RETURNING id",
+	).Scan(&tenantID)
+	require.NoError(t, err)
+
+	// Provision with UserID but NO DepartmentID — should not error
+	// and should still attempt KB grant resolution (even if none found).
+	inst, err := mgr.Provision(ctx, tenantID, orchestrator.ProvisionOpts{
+		UserID: ptrString("user-no-dept"),
+	})
+	require.NoError(t, err)
+	assert.Equal(t, orchestrator.StatusRunning, inst.Status)
+	require.NotNil(t, inst.UserID)
+	assert.Equal(t, "user-no-dept", *inst.UserID)
+	assert.Nil(t, inst.DepartmentID)
+
+	// Verify the driver received the spec with UserID set
+	require.NotNil(t, inst.VMID)
+	spec, ok := driver.LastSpec(*inst.VMID)
+	require.True(t, ok)
+	assert.Equal(t, "user-no-dept", spec.UserID)
+	assert.Empty(t, spec.DepartmentID)
+}
+
 func TestManager_Provision_FromWarmPool(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping integration test")

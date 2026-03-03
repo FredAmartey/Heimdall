@@ -136,6 +136,9 @@ func (d *DockerDriver) Start(ctx context.Context, spec VMSpec) (VMHandle, error)
 
 		// Shared: one read-only mount per granted knowledge base
 		for _, kb := range spec.KnowledgeBases {
+			if strings.ContainsAny(kb.Name, "/\\") || kb.Name == ".." || kb.Name == "." || kb.Name == "" {
+				return VMHandle{}, fmt.Errorf("invalid knowledge base name %q: must not contain path separators", kb.Name)
+			}
 			target := fmt.Sprintf("/memory/shared/%s", kb.Name)
 			if err := addMount(filepath.Join("kbs", kb.ID), target, true); err != nil {
 				return VMHandle{}, err

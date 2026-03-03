@@ -141,8 +141,14 @@ func (m *Manager) coldStart(ctx context.Context, tenantID string, opts Provision
 	}
 
 	// Resolve granted knowledge bases for shared memory mounts.
-	if spec.UserID != "" && spec.DepartmentID != "" {
-		kbs, kbErr := m.kbStore.GrantsForUser(ctx, m.pool, tenantID, spec.UserID, spec.DepartmentID)
+	// Pass zero UUID when department is empty so the Postgres ::UUID cast succeeds
+	// but never matches a real department row.
+	if spec.UserID != "" {
+		deptParam := spec.DepartmentID
+		if deptParam == "" {
+			deptParam = "00000000-0000-0000-0000-000000000000"
+		}
+		kbs, kbErr := m.kbStore.GrantsForUser(ctx, m.pool, tenantID, spec.UserID, deptParam)
 		if kbErr != nil {
 			slog.Warn("failed to resolve knowledge base grants, skipping shared mounts", "error", kbErr)
 		} else {
