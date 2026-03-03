@@ -17,6 +17,7 @@ export default function LoginPage() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [devEmail, setDevEmail] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
 
@@ -25,7 +26,7 @@ export default function LoginPage() {
     setError("")
     setLoading(true)
 
-    const result = await signIn("credentials", { email, redirect: false })
+    const result = await signIn("credentials", { email: devEmail, redirect: false })
     setLoading(false)
 
     if (result?.error) {
@@ -190,8 +191,8 @@ export default function LoginPage() {
               <input
                 id="dev-email"
                 type="email"
-                value={isClerkEnabled ? undefined : email}
-                onChange={(e) => !isClerkEnabled && setEmail(e.target.value)}
+                value={devEmail}
+                onChange={(e) => setDevEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
                 className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-1 focus:ring-zinc-400"

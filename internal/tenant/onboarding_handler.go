@@ -53,6 +53,12 @@ func (h *OnboardingHandler) HandleSelfServiceCreate(w http.ResponseWriter, r *ht
 		}
 	}
 
+	// Seed default roles so AssignRole("org_admin") finds a matching role row.
+	if err := h.tenantStore.SeedDefaultRoles(r.Context(), t.ID); err != nil {
+		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to initialize team roles"})
+		return
+	}
+
 	if err := h.authStore.UpdateUserTenant(r.Context(), identity.UserID, t.ID); err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to assign user to team"})
 		return

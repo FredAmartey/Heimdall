@@ -15,8 +15,8 @@ type InviteInfo struct {
 // InviteRedeemer abstracts the invite store operations needed for redemption,
 // breaking the import cycle between auth and tenant packages.
 type InviteRedeemer interface {
-	GetByCode(ctx context.Context, code string) (*InviteInfo, error)
-	Redeem(ctx context.Context, code, userID string) error
+	// Redeem atomically marks an invite as used and returns its info.
+	Redeem(ctx context.Context, code, userID string) (*InviteInfo, error)
 }
 
 // InviteRedeemHandler handles invite code redemption — assigns user to a
@@ -50,15 +50,9 @@ func (h *InviteRedeemHandler) HandleRedeem(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Get invite
-	inv, err := h.invites.GetByCode(r.Context(), req.Code)
+	// Redeem atomically (validates expiry + used status in SQL)
+	inv, err := h.invites.Redeem(r.Context(), req.Code, identity.UserID)
 	if err != nil {
-		writeAuthError(w, http.StatusNotFound, err.Error())
-		return
-	}
-
-	// Redeem (validates expiry, used status)
-	if err := h.invites.Redeem(r.Context(), req.Code, identity.UserID); err != nil {
 		writeAuthError(w, http.StatusBadRequest, err.Error())
 		return
 	}

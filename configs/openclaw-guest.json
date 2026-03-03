@@ -1,0 +1,31 @@
+{
+  "gateway": {
+    "bind": "127.0.0.1",
+    "port": 8081
+  },
+  "agents": {
+    "defaults": {
+      "sandbox": {
+        "mode": "non-main"
+      }
+    }
+  },
+  "tools": {
+    "exec": {
+      "workspaceOnly": true,
+      "applyPatch": {
+        "workspaceOnly": true
+      }
+    }
+  },
+  "memory": {
+    "qmd": {
+      "paths": [
+        { "name": "personal", "path": "/memory/personal", "pattern": "**/*.md" },
+        { "name": "department", "path": "/memory/department", "pattern": "**/*.md" },
+        { "name": "tenant", "path": "/memory/tenant", "pattern": "**/*.md" },
+        { "name": "shared", "path": "/memory/shared", "pattern": "**/*.md" }
+      ]
+    }
+  }
+}

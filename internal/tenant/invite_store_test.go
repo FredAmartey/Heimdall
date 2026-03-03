@@ -121,11 +121,13 @@ func TestInviteStore_Redeem(t *testing.T) {
 	inv, err := inviteStore.Create(ctx, tn.ID, creatorID, "standard_user", 24*time.Hour)
 	require.NoError(t, err)
 
-	err = inviteStore.Redeem(ctx, inv.Code, redeemerID)
+	redeemed, err := inviteStore.Redeem(ctx, inv.Code, redeemerID)
 	require.NoError(t, err)
+	assert.Equal(t, inv.ID, redeemed.ID)
+	assert.Equal(t, tn.ID, redeemed.TenantID)
 
 	// Double redeem fails
-	err = inviteStore.Redeem(ctx, inv.Code, anotherID)
+	_, err = inviteStore.Redeem(ctx, inv.Code, anotherID)
 	assert.ErrorIs(t, err, tenant.ErrInviteUsed)
 }
 

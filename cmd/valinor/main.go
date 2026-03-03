@@ -678,16 +678,12 @@ type inviteRedeemAdapter struct {
 	store *tenant.InviteStore
 }
 
-func (a *inviteRedeemAdapter) GetByCode(ctx context.Context, code string) (*auth.InviteInfo, error) {
-	inv, err := a.store.GetByCode(ctx, code)
+func (a *inviteRedeemAdapter) Redeem(ctx context.Context, code, userID string) (*auth.InviteInfo, error) {
+	inv, err := a.store.Redeem(ctx, code, userID)
 	if err != nil {
 		return nil, err
 	}
 	return &auth.InviteInfo{TenantID: inv.TenantID, Role: inv.Role}, nil
-}
-
-func (a *inviteRedeemAdapter) Redeem(ctx context.Context, code, userID string) error {
-	return a.store.Redeem(ctx, code, userID)
 }
 
 // rbacAuditAdapter bridges audit.Logger to rbac.AuditLogger.

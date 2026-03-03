@@ -10,6 +10,14 @@ import (
 	"github.com/valinor-ai/valinor/internal/platform/middleware"
 )
 
+// allowedInviteRoles is the set of roles that can be assigned via invite.
+var allowedInviteRoles = map[string]bool{
+	"org_admin":     true,
+	"dept_head":     true,
+	"standard_user": true,
+	"read_only":     true,
+}
+
 type InviteHandler struct {
 	store *InviteStore
 }
@@ -39,6 +47,10 @@ func (h *InviteHandler) HandleCreate(w http.ResponseWriter, r *http.Request) {
 	}
 	if req.Role == "" {
 		req.Role = "standard_user"
+	}
+	if !allowedInviteRoles[req.Role] {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid role: " + req.Role})
+		return
 	}
 
 	inv, err := h.store.Create(r.Context(), tenantID, identity.UserID, req.Role, 7*24*time.Hour)
