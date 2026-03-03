@@ -1,4 +1,11 @@
 // Tenant types — matches Go internal/tenant/handler.go responses
+export interface TenantStats {
+  users: number
+  departments: number
+  agents: number
+  connectors: number
+}
+
 export interface Tenant {
   id: string
   name: string
@@ -7,6 +14,7 @@ export interface Tenant {
   settings: Record<string, unknown>
   created_at: string
   updated_at: string
+  stats?: TenantStats
 }
 
 export interface TenantCreateRequest {

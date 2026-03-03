@@ -21,6 +21,15 @@ type Tenant struct {
 	Status    string    `json:"status"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+	Stats     *Stats    `json:"stats,omitempty"`
+}
+
+// Stats holds aggregate counts for a tenant's resources.
+type Stats struct {
+	Users       int `json:"users"`
+	Departments int `json:"departments"`
+	Agents      int `json:"agents"`
+	Connectors  int `json:"connectors"`
 }
 
 var slugPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$`)

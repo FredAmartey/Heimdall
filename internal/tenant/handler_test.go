@@ -100,6 +100,11 @@ func TestHandler_GetTenant(t *testing.T) {
 	err = json.Unmarshal(w.Body.Bytes(), &resp)
 	require.NoError(t, err)
 	assert.Equal(t, "Chelsea FC", resp.Name)
+	require.NotNil(t, resp.Stats)
+	assert.Equal(t, 0, resp.Stats.Users)
+	assert.Equal(t, 0, resp.Stats.Departments)
+	assert.Equal(t, 0, resp.Stats.Agents)
+	assert.Equal(t, 0, resp.Stats.Connectors)
 }
 
 func TestHandler_ListTenants(t *testing.T) {
