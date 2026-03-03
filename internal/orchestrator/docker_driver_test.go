@@ -208,6 +208,47 @@ func TestDockerDriver_MemoryMounts_AllLayers(t *testing.T) {
 	// container's mount table, which requires Docker daemon access.
 }
 
+func TestDockerDriver_MemoryMounts_RejectsInvalidKBName(t *testing.T) {
+	requireDocker(t)
+
+	tmpDir := t.TempDir()
+	driver := orchestrator.NewDockerDriver(orchestrator.DockerDriverConfig{
+		Image:           "alpine:latest",
+		NetworkMode:     "none",
+		DefaultCPUs:     1,
+		DefaultMemoryMB: 64,
+		MemoryBasePath:  tmpDir,
+		Cmd:             []string{"sleep", "30"},
+	})
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	badNames := []string{
+		"../personal",
+		"foo/bar",
+		"foo\\bar",
+		"..",
+		".",
+		"",
+	}
+
+	for _, name := range badNames {
+		t.Run("name="+name, func(t *testing.T) {
+			spec := orchestrator.VMSpec{
+				VMID:     "kb-name-test",
+				VsockCID: 700,
+				KnowledgeBases: []orchestrator.KBMount{
+					{ID: "kb-bad", Name: name},
+				},
+			}
+			_, err := driver.Start(ctx, spec)
+			require.Error(t, err, "expected error for KB name %q", name)
+			require.Contains(t, err.Error(), "invalid knowledge base name")
+		})
+	}
+}
+
 func TestDockerDriver_NoMemoryMountsWithoutBasePath(t *testing.T) {
 	requireDocker(t)
 
