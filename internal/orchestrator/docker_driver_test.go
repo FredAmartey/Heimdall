@@ -12,7 +12,8 @@ import (
 	"github.com/valinor-ai/valinor/internal/orchestrator"
 )
 
-// requireDocker skips the test if Docker daemon is not available.
+// requireDocker skips the test if Docker daemon is not available or the test
+// image cannot be pulled. These are integration tests requiring Docker.
 func requireDocker(t *testing.T) {
 	t.Helper()
 	if testing.Short() {
@@ -20,6 +21,13 @@ func requireDocker(t *testing.T) {
 	}
 	if err := exec.CommandContext(context.Background(), "docker", "info").Run(); err != nil {
 		t.Skip("skipping: Docker daemon not available")
+	}
+	// Ensure the test image is available (pull if needed).
+	if err := exec.CommandContext(context.Background(), "docker", "image", "inspect", "alpine:latest").Run(); err != nil {
+		t.Log("pulling alpine:latest for Docker integration tests...")
+		if pullErr := exec.CommandContext(context.Background(), "docker", "pull", "alpine:latest").Run(); pullErr != nil {
+			t.Skipf("skipping: cannot pull alpine:latest: %v", pullErr)
+		}
 	}
 }
 

@@ -32,7 +32,7 @@ type DockerDriverConfig struct {
 	DefaultCPUs      int
 	DefaultMemoryMB  int
 	MemoryBasePath   string
-	WorkspaceQuotaMB int // reserved for future --storage-opt support; not yet enforced
+	WorkspaceQuotaMB int      // reserved for future --storage-opt support; not yet enforced
 	Cmd              []string // optional command override (default: use image ENTRYPOINT/CMD)
 }
 
