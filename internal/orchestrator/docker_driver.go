@@ -93,23 +93,57 @@ func (d *DockerDriver) Start(ctx context.Context, spec VMSpec) (VMHandle, error)
 		Cmd: d.cfg.Cmd,
 	}
 
-	// Memory volume mounts: create host-side personal dir and bind mount it.
+	// Memory volume mounts: personal (rw), department (ro), tenant (ro), shared (ro per KB).
 	var mounts []mount.Mount
 	if d.cfg.MemoryBasePath != "" {
-		personalDir := filepath.Join(d.cfg.MemoryBasePath, spec.VMID, "personal")
-		// Guard against path traversal via crafted VMID.
 		cleanBase := filepath.Clean(d.cfg.MemoryBasePath)
-		if !strings.HasPrefix(filepath.Clean(personalDir), cleanBase+string(filepath.Separator)) {
-			return VMHandle{}, fmt.Errorf("memory path %q escapes base %q", personalDir, cleanBase)
+
+		addMount := func(subpath, target string, readOnly bool) error {
+			hostDir := filepath.Join(d.cfg.MemoryBasePath, subpath)
+			if !strings.HasPrefix(filepath.Clean(hostDir), cleanBase+string(filepath.Separator)) {
+				return fmt.Errorf("memory path %q escapes base %q", hostDir, cleanBase)
+			}
+			if err := os.MkdirAll(hostDir, 0o750); err != nil {
+				return fmt.Errorf("creating memory dir %s: %w", target, err)
+			}
+			mounts = append(mounts, mount.Mount{
+				Type:     mount.TypeBind,
+				Source:   hostDir,
+				Target:   target,
+				ReadOnly: readOnly,
+			})
+			return nil
 		}
-		if err := os.MkdirAll(personalDir, 0o750); err != nil {
-			return VMHandle{}, fmt.Errorf("creating personal memory dir: %w", err)
+
+		// Personal: per-VM, read-write
+		if err := addMount(filepath.Join(spec.VMID, "personal"), "/memory/personal", false); err != nil {
+			return VMHandle{}, err
 		}
-		mounts = append(mounts, mount.Mount{
-			Type:   mount.TypeBind,
-			Source: personalDir,
-			Target: "/memory/personal",
-		})
+
+		// Department: shared across dept agents, read-only
+		if spec.DepartmentID != "" {
+			if err := addMount(filepath.Join("departments", spec.DepartmentID), "/memory/department", true); err != nil {
+				return VMHandle{}, err
+			}
+		}
+
+		// Tenant: shared across tenant agents, read-only
+		if spec.TenantID != "" {
+			if err := addMount(filepath.Join("tenants", spec.TenantID), "/memory/tenant", true); err != nil {
+				return VMHandle{}, err
+			}
+		}
+
+		// Shared: one read-only mount per granted knowledge base
+		for _, kb := range spec.KnowledgeBases {
+			if strings.ContainsAny(kb.Name, "/\\") || kb.Name == ".." || kb.Name == "." || kb.Name == "" {
+				return VMHandle{}, fmt.Errorf("invalid knowledge base name %q: must not contain path separators", kb.Name)
+			}
+			target := fmt.Sprintf("/memory/shared/%s", kb.Name)
+			if err := addMount(filepath.Join("kbs", kb.ID), target, true); err != nil {
+				return VMHandle{}, err
+			}
+		}
 	}
 
 	hostCfg := &container.HostConfig{

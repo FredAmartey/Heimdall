@@ -243,7 +243,8 @@ func run() error {
 			MaxConsecutiveFailures: cfg.Orchestrator.MaxConsecutiveFailures,
 			WorkspaceDataQuotaMB:   workspaceQuotaMB,
 		}
-		orchManager = orchestrator.NewManager(pool, orchDriver, orchStore, orchCfg)
+		orchKBStore := orchestrator.NewKBStore()
+		orchManager = orchestrator.NewManager(pool, orchDriver, orchStore, orchKBStore, orchCfg)
 
 		// Proxy — agent messaging and config push
 		transport := proxy.NewTCPTransport(cfg.Proxy.TCPBasePort)

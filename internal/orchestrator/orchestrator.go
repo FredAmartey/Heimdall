@@ -37,7 +37,10 @@ type VMDriver interface {
 // VMSpec describes the configuration for a new VM.
 type VMSpec struct {
 	VMID             string
-	TenantID         string // tenant owning this VM (empty for warm pool)
+	TenantID         string    // tenant owning this VM (empty for warm pool)
+	UserID           string    // user owning this VM (empty for warm pool)
+	DepartmentID     string    // department of the user (empty for warm pool)
+	KnowledgeBases   []KBMount // granted knowledge bases for /memory/shared mounts
 	RootDrive        string
 	DataDrive        string
 	DataDriveQuotaMB int
@@ -48,6 +51,12 @@ type VMSpec struct {
 	VsockCID         uint32
 	UseJailer        bool
 	JailerPath       string
+}
+
+// KBMount identifies a knowledge base to mount as a shared volume.
+type KBMount struct {
+	ID   string // knowledge_bases.id
+	Name string // knowledge_bases.name (used as subdirectory under /memory/shared/)
 }
 
 // VMHandle is returned after a VM starts successfully.
