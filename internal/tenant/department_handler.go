@@ -170,6 +170,14 @@ func (h *DepartmentHandler) HandleUpdate(w http.ResponseWriter, r *http.Request)
 		return updateErr
 	})
 	if err != nil {
+		if errors.Is(err, ErrDepartmentNameEmpty) {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
+		}
+		if errors.Is(err, ErrDepartmentSelfParent) {
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": err.Error()})
+			return
+		}
 		if errors.Is(err, ErrDepartmentNotFound) {
 			writeJSON(w, http.StatusNotFound, map[string]string{"error": "department not found"})
 			return

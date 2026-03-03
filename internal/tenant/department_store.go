@@ -88,6 +88,23 @@ func (s *DepartmentStore) List(ctx context.Context, q database.Querier) ([]Depar
 // the current value. Pass a non-nil parentID to change parent, or nil to keep it.
 // To clear the parent (make top-level), pass a pointer to an empty string.
 func (s *DepartmentStore) Update(ctx context.Context, q database.Querier, id, name string, parentID *string) (*Department, error) {
+	if name != "" {
+		if err := ValidateDepartmentName(name); err != nil {
+			return nil, err
+		}
+	}
+
+	if parentID != nil && *parentID != "" {
+		if *parentID == id {
+			return nil, ErrDepartmentSelfParent
+		}
+		// Validate parent exists in this tenant (FK checks bypass RLS, so we verify manually)
+		if _, err := s.GetByID(ctx, q, *parentID); err != nil {
+			return nil, fmt.Errorf("invalid parent department: %w", err)
+		}
+	}
+
+	// $3::BOOLEAN controls whether parent_id is updated: true → set to $4, false → keep current.
 	query := `UPDATE departments
 		SET name      = CASE WHEN $2 = '' THEN name ELSE $2 END,
 		    parent_id = CASE WHEN $3::BOOLEAN THEN $4::UUID ELSE parent_id END
