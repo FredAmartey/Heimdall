@@ -127,3 +127,39 @@ func (s *UserStore) ListDepartments(ctx context.Context, q database.Querier, use
 	}
 	return departments, rows.Err()
 }
+
+// Update modifies a user's display_name and/or status. Empty string values
+// are ignored (the existing value is preserved). RLS ensures tenant isolation.
+func (s *UserStore) Update(ctx context.Context, q database.Querier, id, displayName, status string) (*User, error) {
+	var user User
+	err := q.QueryRow(ctx,
+		`UPDATE users
+		 SET display_name = CASE WHEN $2 = '' THEN display_name ELSE $2 END,
+		     status       = CASE WHEN $3 = '' THEN status ELSE $3 END
+		 WHERE id = $1
+		 RETURNING id, tenant_id, email, COALESCE(display_name, ''), status, created_at`,
+		id, displayName, status,
+	).Scan(&user.ID, &user.TenantID, &user.Email, &user.DisplayName, &user.Status, &user.CreatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrUserNotFound
+		}
+		return nil, fmt.Errorf("updating user: %w", err)
+	}
+	return &user, nil
+}
+
+// SoftDelete sets a user's status to "suspended".
+func (s *UserStore) SoftDelete(ctx context.Context, q database.Querier, id string) error {
+	tag, err := q.Exec(ctx,
+		`UPDATE users SET status = 'suspended' WHERE id = $1`,
+		id,
+	)
+	if err != nil {
+		return fmt.Errorf("soft-deleting user: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrUserNotFound
+	}
+	return nil
+}

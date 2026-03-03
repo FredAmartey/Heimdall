@@ -96,6 +96,58 @@ func TestUserStore(t *testing.T) {
 		require.NoError(t, err)
 	})
 
+	t.Run("Update_DisplayName", func(t *testing.T) {
+		err := database.WithTenantConnection(ctx, rlsPool, ten.ID, func(ctx context.Context, q database.Querier) error {
+			user, createErr := userStore.Create(ctx, q, "update@example.com", "Original")
+			require.NoError(t, createErr)
+
+			updated, updateErr := userStore.Update(ctx, q, user.ID, "Updated Name", "")
+			require.NoError(t, updateErr)
+			assert.Equal(t, "Updated Name", updated.DisplayName)
+			assert.Equal(t, "active", updated.Status)
+			return nil
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("Update_Status", func(t *testing.T) {
+		err := database.WithTenantConnection(ctx, rlsPool, ten.ID, func(ctx context.Context, q database.Querier) error {
+			user, createErr := userStore.Create(ctx, q, "suspend@example.com", "Suspend Me")
+			require.NoError(t, createErr)
+
+			updated, updateErr := userStore.Update(ctx, q, user.ID, "", "suspended")
+			require.NoError(t, updateErr)
+			assert.Equal(t, "suspended", updated.Status)
+			return nil
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("Update_NotFound", func(t *testing.T) {
+		err := database.WithTenantConnection(ctx, rlsPool, ten.ID, func(ctx context.Context, q database.Querier) error {
+			_, updateErr := userStore.Update(ctx, q, "00000000-0000-0000-0000-000000000000", "Name", "")
+			assert.ErrorIs(t, updateErr, tenant.ErrUserNotFound)
+			return nil
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("SoftDelete", func(t *testing.T) {
+		err := database.WithTenantConnection(ctx, rlsPool, ten.ID, func(ctx context.Context, q database.Querier) error {
+			user, createErr := userStore.Create(ctx, q, "delete@example.com", "Delete Me")
+			require.NoError(t, createErr)
+
+			deleteErr := userStore.SoftDelete(ctx, q, user.ID)
+			require.NoError(t, deleteErr)
+
+			got, getErr := userStore.GetByID(ctx, q, user.ID)
+			require.NoError(t, getErr)
+			assert.Equal(t, "suspended", got.Status)
+			return nil
+		})
+		require.NoError(t, err)
+	})
+
 	t.Run("DepartmentMembership", func(t *testing.T) {
 		ten5, err := tenantStore.Create(ctx, "Dept Membership Org", "dept-member-org")
 		require.NoError(t, err)
