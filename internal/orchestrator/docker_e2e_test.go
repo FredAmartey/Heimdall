@@ -22,10 +22,10 @@ func requireDockerImage(t *testing.T, image string) {
 	if _, err := exec.LookPath("docker"); err != nil {
 		t.Skip("docker CLI not found, skipping")
 	}
-	if err := exec.Command("docker", "info").Run(); err != nil {
+	if err := exec.CommandContext(context.Background(), "docker", "info").Run(); err != nil {
 		t.Skip("Docker daemon not running, skipping")
 	}
-	if err := exec.Command("docker", "image", "inspect", image).Run(); err != nil {
+	if err := exec.CommandContext(context.Background(), "docker", "image", "inspect", image).Run(); err != nil {
 		t.Skipf("Docker image %s not found (build with: docker build -f Dockerfile.agent -t %s .), skipping", image, image)
 	}
 }

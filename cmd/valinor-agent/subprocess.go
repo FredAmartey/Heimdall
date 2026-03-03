@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"os"
@@ -34,6 +35,8 @@ func (s *Subprocess) Start(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// #nosec G204 -- Name and Args are set by agent code (hardcoded "openclaw"), not user input.
+	// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
 	s.cmd = exec.CommandContext(ctx, s.Name, s.Args...)
 	s.cmd.Env = append(os.Environ(), s.Env...)
 	if s.Dir != "" {
@@ -94,7 +97,8 @@ func (s *Subprocess) WaitForReady(ctx context.Context) error {
 			if err != nil {
 				continue
 			}
-			resp.Body.Close()
+			_, _ = io.Copy(io.Discard, resp.Body)
+			_ = resp.Body.Close() // #nosec G104 -- best-effort close in readiness poll
 			if resp.StatusCode < 500 {
 				slog.Info("subprocess ready", "name", s.Name, "url", s.ReadyURL)
 				return nil

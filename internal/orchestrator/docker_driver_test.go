@@ -18,7 +18,7 @@ func requireDocker(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping Docker integration test in short mode")
 	}
-	if err := exec.Command("docker", "info").Run(); err != nil {
+	if err := exec.CommandContext(context.Background(), "docker", "info").Run(); err != nil {
 		t.Skip("skipping: Docker daemon not available")
 	}
 }

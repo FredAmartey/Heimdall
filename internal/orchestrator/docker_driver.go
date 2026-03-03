@@ -28,7 +28,7 @@ const (
 // DockerDriverConfig holds configuration for the Docker-based VM driver.
 type DockerDriverConfig struct {
 	Image            string
-	NetworkMode      string   // "none", "per-tenant", "bridge"
+	NetworkMode      string // "none", "per-tenant", "bridge"
 	DefaultCPUs      int
 	DefaultMemoryMB  int
 	MemoryBasePath   string
@@ -40,7 +40,6 @@ type DockerDriverConfig struct {
 type DockerDriver struct {
 	cfg     DockerDriverConfig
 	cli     *client.Client
-	mu      sync.Mutex
 	initMu  sync.Once
 	initErr error
 }
@@ -140,9 +139,9 @@ func (d *DockerDriver) Start(ctx context.Context, spec VMSpec) (VMHandle, error)
 		return VMHandle{}, fmt.Errorf("creating container %s: %w", containerName, err)
 	}
 
-	if err := d.cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
+	if startErr := d.cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); startErr != nil {
 		_ = d.cli.ContainerRemove(ctx, resp.ID, container.RemoveOptions{Force: true})
-		return VMHandle{}, fmt.Errorf("starting container %s: %w", containerName, err)
+		return VMHandle{}, fmt.Errorf("starting container %s: %w", containerName, startErr)
 	}
 
 	info, err := d.cli.ContainerInspect(ctx, resp.ID)
