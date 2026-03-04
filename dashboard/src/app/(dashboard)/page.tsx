@@ -1,6 +1,6 @@
 import { api } from "@/lib/api"
 import { auth } from "@/lib/auth"
-import { PlatformOverview } from "@/components/overview/platform-overview"
+import { Overview } from "@/components/overview/overview"
 import type { Tenant, AgentInstance } from "@/lib/types"
 
 export default async function OverviewPage() {
@@ -19,5 +19,13 @@ export default async function OverviewPage() {
       }),
   ])
 
-  return <PlatformOverview initialTenants={tenants} initialAgents={agents} />
+  return (
+    <Overview
+      userName={session?.user?.name ?? ""}
+      isPlatformAdmin={isPlatformAdmin}
+      hasTenant={!!session?.user?.tenantId}
+      initialTenants={tenants}
+      initialAgents={agents}
+    />
+  )
 }
