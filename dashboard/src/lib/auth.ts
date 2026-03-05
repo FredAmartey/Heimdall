@@ -13,6 +13,7 @@ declare module "next-auth" {
       isPlatformAdmin: boolean
       isNewUser: boolean
       roles: string[]
+      impersonatingTenantName?: string
     }
   }
 
@@ -27,6 +28,7 @@ declare module "next-auth" {
     refreshToken: string
     expiresIn: number
     roles: string[]
+    impersonatingTenantName?: string
   }
 }
 
@@ -40,6 +42,7 @@ declare module "@auth/core/jwt" {
     isPlatformAdmin: boolean
     isNewUser: boolean
     roles: string[]
+    impersonatingTenantName?: string
   }
 }
 
@@ -193,6 +196,7 @@ export const authConfig: NextAuthConfig = {
         token.isPlatformAdmin = user.isPlatformAdmin ?? false
         token.isNewUser = user.isNewUser ?? false
         token.roles = user.roles ?? []
+        token.impersonatingTenantName = user.impersonatingTenantName
         return token
       }
 
@@ -206,6 +210,7 @@ export const authConfig: NextAuthConfig = {
         token.isPlatformAdmin = user.isPlatformAdmin ?? false
         token.isNewUser = user.isNewUser ?? false
         token.roles = user.roles ?? []
+        token.impersonatingTenantName = user.impersonatingTenantName
         return token
       }
 
@@ -240,6 +245,7 @@ export const authConfig: NextAuthConfig = {
       session.user.isPlatformAdmin = token.isPlatformAdmin
       session.user.isNewUser = token.isNewUser ?? false
       session.user.roles = token.roles
+      session.user.impersonatingTenantName = token.impersonatingTenantName
       return session
     },
   },
