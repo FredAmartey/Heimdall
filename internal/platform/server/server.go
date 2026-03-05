@@ -172,7 +172,10 @@ func New(addr string, deps Dependencies) *Server {
 		)
 	}
 
-	// Platform admin tenant drill-down (read-only)
+	// Platform admin tenant drill-down (read-only).
+	// These routes bypass tenant RBAC — platform admins have implicit read
+	// access to all tenant resources. Do NOT extend to non-platform-admin roles
+	// without adding RBAC checks.
 	if deps.Pool != nil {
 		tenantProxy := admin.NewTenantProxy(deps.Pool)
 

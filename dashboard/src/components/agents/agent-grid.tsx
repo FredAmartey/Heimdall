@@ -13,9 +13,10 @@ const STATUS_OPTIONS = ["all", "running", "provisioning", "unhealthy", "warm"] a
 interface AgentGridProps {
   tenantId?: string
   readOnly?: boolean
+  basePath?: string
 }
 
-export function AgentGrid({ tenantId, readOnly }: AgentGridProps = {}) {
+export function AgentGrid({ tenantId, readOnly, basePath = "/agents" }: AgentGridProps) {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
@@ -105,7 +106,7 @@ export function AgentGrid({ tenantId, readOnly }: AgentGridProps = {}) {
       ) : (
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((agent) => (
-            <AgentCard key={agent.id} agent={agent} />
+            <AgentCard key={agent.id} agent={agent} basePath={basePath} />
           ))}
         </div>
       )}

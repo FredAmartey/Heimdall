@@ -12,7 +12,7 @@ interface RBACViewProps {
   readOnly?: boolean
 }
 
-export function RBACView({ tenantId, readOnly }: RBACViewProps = {}) {
+export function RBACView({ tenantId, readOnly }: RBACViewProps) {
   const { data: roles } = useRolesQuery(tenantId)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)

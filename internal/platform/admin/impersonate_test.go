@@ -41,6 +41,15 @@ func TestHandleImpersonate_InvalidTenantID(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
+func TestHandleImpersonate_NoIdentity(t *testing.T) {
+	h := NewImpersonateHandler(nil, nil, nil)
+	req := httptest.NewRequest("POST", "/api/v1/tenants/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11/impersonate", nil)
+	// No identity in context
+	w := httptest.NewRecorder()
+	h.Handle(w, req)
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
 func TestHandleImpersonate_Scaffold(t *testing.T) {
 	h := NewImpersonateHandler(nil, nil, nil)
 

@@ -3,10 +3,10 @@ import { AgentStatusDot } from "./agent-status-badge"
 import { formatDate, formatTimeAgo, truncateId } from "@/lib/format"
 import type { AgentInstance } from "@/lib/types"
 
-export function AgentCard({ agent }: { agent: AgentInstance }) {
+export function AgentCard({ agent, basePath = "/agents" }: { agent: AgentInstance; basePath?: string }) {
   return (
     <Link
-      href={`/agents/${agent.id}`}
+      href={`${basePath}/${agent.id}`}
       className="rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:bg-zinc-50 active:scale-[0.99]"
     >
       <div className="flex items-center justify-between">

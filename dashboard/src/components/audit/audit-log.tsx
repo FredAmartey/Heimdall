@@ -28,7 +28,7 @@ import {
 
 const PAGE_SIZE = 50
 
-export function AuditLog({ tenantId }: { tenantId?: string } = {}) {
+export function AuditLog({ tenantId }: { tenantId?: string }) {
   const [actionCategory, setActionCategory] = useState("")
   const [resourceType, setResourceType] = useState("")
   const [sourceFilter, setSourceFilter] = useState("")
