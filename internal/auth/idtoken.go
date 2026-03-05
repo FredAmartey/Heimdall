@@ -13,6 +13,7 @@ type IDTokenValidatorConfig struct {
 	JWKSUrl  string
 	Issuer   string
 	Audience string
+	AZP      string
 	CacheTTL time.Duration
 }
 
@@ -21,6 +22,7 @@ type IDTokenValidator struct {
 	jwks     *JWKSClient
 	issuer   string
 	audience string
+	azp      string
 }
 
 // NewIDTokenValidator creates a validator for external id_tokens.
@@ -33,6 +35,7 @@ func NewIDTokenValidator(cfg IDTokenValidatorConfig) *IDTokenValidator {
 		jwks:     NewJWKSClient(cfg.JWKSUrl, ttl),
 		issuer:   cfg.Issuer,
 		audience: cfg.Audience,
+		azp:      cfg.AZP,
 	}
 }
 
@@ -66,6 +69,14 @@ func (v *IDTokenValidator) Validate(ctx context.Context, tokenString string) (*O
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok || !token.Valid {
 		return nil, fmt.Errorf("invalid token claims")
+	}
+
+	// When audience validation is skipped, validate azp (authorized party) if configured.
+	if v.audience == "" && v.azp != "" {
+		azp, _ := claims["azp"].(string)
+		if azp != v.azp {
+			return nil, fmt.Errorf("azp mismatch: got %q, want %q", azp, v.azp)
+		}
 	}
 
 	sub, _ := claims["sub"].(string)

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -180,7 +181,7 @@ func (s *Store) UpdateUserTenant(ctx context.Context, userID, tenantID string) e
 
 // AssignRole inserts a role assignment for a user in a tenant.
 func (s *Store) AssignRole(ctx context.Context, userID, tenantID, roleName string) error {
-	_, err := s.pool.Exec(ctx,
+	tag, err := s.pool.Exec(ctx,
 		`INSERT INTO user_roles (user_id, role_id, scope_type, scope_id)
 		 SELECT $1, r.id, 'org', $2
 		 FROM roles r WHERE r.tenant_id = $2 AND r.name = $3
@@ -189,6 +190,10 @@ func (s *Store) AssignRole(ctx context.Context, userID, tenantID, roleName strin
 	)
 	if err != nil {
 		return fmt.Errorf("assigning role: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		slog.Warn("role assignment had no effect — role may not exist for tenant",
+			"role", roleName, "tenant_id", tenantID, "user_id", userID)
 	}
 	return nil
 }

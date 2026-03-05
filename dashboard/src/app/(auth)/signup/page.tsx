@@ -1,6 +1,5 @@
 "use client"
 
-import { signIn } from "next-auth/react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthCard } from "@/components/auth/auth-card"
@@ -8,8 +7,6 @@ import { SocialButtons } from "@/components/auth/social-buttons"
 import { AuthDivider } from "@/components/auth/auth-divider"
 import { getClerk } from "@/lib/clerk"
 import Link from "next/link"
-
-const tenantSlug = process.env.NEXT_PUBLIC_TENANT_SLUG
 
 export default function SignUpPage() {
   const router = useRouter()

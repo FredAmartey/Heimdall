@@ -71,10 +71,10 @@ type devLoginResponse struct {
 	RefreshToken string           `json:"refresh_token"`
 	TokenType    string           `json:"token_type"`
 	ExpiresIn    int              `json:"expires_in"`
-	User         devLoginUserInfo `json:"user"`
+	User         tokenUserInfo `json:"user"`
 }
 
-type devLoginUserInfo struct {
+type tokenUserInfo struct {
 	ID              string `json:"id"`
 	Email           string `json:"email"`
 	DisplayName     string `json:"display_name"`
@@ -88,7 +88,7 @@ type exchangeResponse struct {
 	TokenType    string           `json:"token_type"`
 	ExpiresIn    int              `json:"expires_in"`
 	Created      bool             `json:"created"`
-	User         devLoginUserInfo `json:"user"`
+	User         tokenUserInfo `json:"user"`
 }
 
 // HandleDevLogin authenticates by email in dev mode.
@@ -176,7 +176,7 @@ func (h *Handler) HandleDevLogin(w http.ResponseWriter, r *http.Request) {
 		RefreshToken: refreshToken,
 		TokenType:    "Bearer",
 		ExpiresIn:    h.tokenSvc.AccessTokenExpirySeconds(),
-		User: devLoginUserInfo{
+		User: tokenUserInfo{
 			ID:              identity.UserID,
 			Email:           identity.Email,
 			DisplayName:     identity.DisplayName,
@@ -220,7 +220,15 @@ func (h *Handler) HandleExchange(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Clerk session tokens lack an email claim; use the hint from the frontend.
+	// Validate the hint is a well-formed email to prevent injection of arbitrary values.
 	if userInfo.Email == "" && req.EmailHint != "" {
+		if !isValidEmail(req.EmailHint) {
+			slog.Warn("exchange: invalid email_hint rejected", "hint", req.EmailHint, "subject", userInfo.Subject)
+			writeJSON(w, http.StatusBadRequest, map[string]string{
+				"error": "invalid email_hint",
+			})
+			return
+		}
 		userInfo.Email = req.EmailHint
 	}
 
@@ -342,7 +350,7 @@ func (h *Handler) HandleExchange(w http.ResponseWriter, r *http.Request) {
 		TokenType:    "Bearer",
 		ExpiresIn:    h.tokenSvc.AccessTokenExpirySeconds(),
 		Created:      created,
-		User: devLoginUserInfo{
+		User: tokenUserInfo{
 			ID:              fullIdentity.UserID,
 			Email:           fullIdentity.Email,
 			DisplayName:     fullIdentity.DisplayName,
@@ -745,6 +753,24 @@ func classifyRotationError(err error) (int, string) {
 	default:
 		return http.StatusInternalServerError, "token rotation failed"
 	}
+}
+
+// isValidEmail performs basic structural validation of an email address.
+// This is intentionally simple — we need a trust boundary check, not RFC 5322 compliance.
+func isValidEmail(email string) bool {
+	if len(email) > 254 {
+		return false
+	}
+	at := -1
+	for i, c := range email {
+		if c == '@' {
+			if at >= 0 {
+				return false // multiple @
+			}
+			at = i
+		}
+	}
+	return at > 0 && at < len(email)-1
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {

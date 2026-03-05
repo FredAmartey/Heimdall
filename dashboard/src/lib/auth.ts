@@ -277,5 +277,5 @@ export async function getAccessToken(): Promise<string | null> {
     secret: process.env.AUTH_SECRET!,
     salt: cookieName,
   })
-  return (token as any)?.accessToken ?? null
+  return (token as { accessToken?: string } | null)?.accessToken ?? null
 }
