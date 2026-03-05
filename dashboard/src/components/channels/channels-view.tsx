@@ -21,7 +21,7 @@ const ALL_TABS = [
 
 type TabId = (typeof ALL_TABS)[number]["id"]
 
-export function ChannelsView({ permissions }: { permissions: ChannelPermissions }) {
+export function ChannelsView({ permissions, tenantId }: { permissions: ChannelPermissions; tenantId?: string }) {
   const tabs = ALL_TABS.filter((tab) => {
     if (tab.id === "providers" && !permissions.canReadProviders) return false
     if (tab.id === "outbox" && !permissions.canReadOutbox) return false
@@ -50,7 +50,7 @@ export function ChannelsView({ permissions }: { permissions: ChannelPermissions 
         ))}
       </div>
       <div role="tabpanel">
-        {activeTab === "links" && <LinksTab canWrite={permissions.canWriteLinks} />}
+        {activeTab === "links" && <LinksTab canWrite={permissions.canWriteLinks} tenantId={tenantId} />}
         {activeTab === "providers" && <ProvidersTab canWrite={permissions.canWriteProviders} />}
         {activeTab === "outbox" && <OutboxTab canWrite={permissions.canWriteOutbox} />}
       </div>

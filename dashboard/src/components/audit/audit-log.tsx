@@ -28,7 +28,7 @@ import {
 
 const PAGE_SIZE = 50
 
-export function AuditLog() {
+export function AuditLog({ tenantId }: { tenantId?: string } = {}) {
   const [actionCategory, setActionCategory] = useState("")
   const [resourceType, setResourceType] = useState("")
   const [sourceFilter, setSourceFilter] = useState("")
@@ -49,7 +49,7 @@ export function AuditLog() {
     limit: String(PAGE_SIZE),
   }
 
-  const { data, isLoading, isError, refetch } = useAuditEventsQuery(filters)
+  const { data, isLoading, isError, refetch } = useAuditEventsQuery(filters, tenantId)
   const events = data?.events ?? []
 
   const filtered = deferredSearch

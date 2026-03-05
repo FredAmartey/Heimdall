@@ -18,11 +18,11 @@ const STATE_PILL: Record<string, string> = {
   revoked: "bg-zinc-100 text-zinc-500",
 }
 
-export function LinksTab({ canWrite }: { canWrite: boolean }) {
+export function LinksTab({ canWrite, tenantId }: { canWrite: boolean; tenantId?: string }) {
   const [platformFilter, setPlatformFilter] = useState("all")
   const [stateFilter, setStateFilter] = useState("all")
   const [showCreate, setShowCreate] = useState(false)
-  const { data: links, isLoading, isError, refetch } = useChannelLinksQuery()
+  const { data: links, isLoading, isError, refetch } = useChannelLinksQuery(tenantId)
   const deleteMutation = useDeleteChannelLinkMutation()
 
   const filtered = (links ?? []).filter((link) => {

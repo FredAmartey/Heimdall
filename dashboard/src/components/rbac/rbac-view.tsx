@@ -7,8 +7,13 @@ import { RoleDetail } from "./role-detail"
 import { CreateRoleDialog } from "./create-role-dialog"
 import { Plus, ShieldCheck } from "@phosphor-icons/react"
 
-export function RBACView() {
-  const { data: roles } = useRolesQuery()
+interface RBACViewProps {
+  tenantId?: string
+  readOnly?: boolean
+}
+
+export function RBACView({ tenantId, readOnly }: RBACViewProps = {}) {
+  const { data: roles } = useRolesQuery(tenantId)
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const [showCreate, setShowCreate] = useState(false)
 
@@ -21,13 +26,15 @@ export function RBACView() {
       <div className="rounded-xl border border-zinc-200 bg-white p-4">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-zinc-900">Roles</h2>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-1 rounded-lg bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800"
-          >
-            <Plus size={12} />
-            Create
-          </button>
+          {!readOnly && (
+            <button
+              onClick={() => setShowCreate(true)}
+              className="flex items-center gap-1 rounded-lg bg-zinc-900 px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-800"
+            >
+              <Plus size={12} />
+              Create
+            </button>
+          )}
         </div>
         <RoleList
           selectedId={selectedId}

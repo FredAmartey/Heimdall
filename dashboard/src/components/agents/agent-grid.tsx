@@ -10,11 +10,16 @@ import { MagnifyingGlass } from "@phosphor-icons/react"
 
 const STATUS_OPTIONS = ["all", "running", "provisioning", "unhealthy", "warm"] as const
 
-export function AgentGrid() {
+interface AgentGridProps {
+  tenantId?: string
+  readOnly?: boolean
+}
+
+export function AgentGrid({ tenantId, readOnly }: AgentGridProps = {}) {
   const [statusFilter, setStatusFilter] = useState<string>("all")
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
-  const { data, isLoading, isError } = useAgentsQuery(statusFilter)
+  const { data, isLoading, isError } = useAgentsQuery(statusFilter, tenantId)
 
   const agents = data?.agents ?? []
   const filtered = deferredSearch
@@ -53,13 +58,17 @@ export function AgentGrid() {
     return (
       <div className="py-12 text-center">
         <p className="text-sm font-medium text-zinc-900">No agents running</p>
-        <p className="mt-1 text-sm text-zinc-500">Provision your first agent to get started.</p>
-        <Link
-          href="/agents/new"
-          className="mt-4 inline-block rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors active:scale-[0.98]"
-        >
-          Provision agent
-        </Link>
+        <p className="mt-1 text-sm text-zinc-500">
+          {readOnly ? "This tenant has no agents." : "Provision your first agent to get started."}
+        </p>
+        {!readOnly && (
+          <Link
+            href="/agents/new"
+            className="mt-4 inline-block rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors active:scale-[0.98]"
+          >
+            Provision agent
+          </Link>
+        )}
       </div>
     )
   }
