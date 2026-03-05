@@ -7,10 +7,11 @@ import type { Role } from "@/lib/types"
 interface RoleListProps {
   selectedId: string | null
   onSelect: (role: Role) => void
+  tenantId?: string
 }
 
-export function RoleList({ selectedId, onSelect }: RoleListProps) {
-  const { data: roles, isLoading } = useRolesQuery()
+export function RoleList({ selectedId, onSelect, tenantId }: RoleListProps) {
+  const { data: roles, isLoading } = useRolesQuery(tenantId)
 
   if (isLoading) {
     return (

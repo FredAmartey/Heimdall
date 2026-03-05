@@ -9,8 +9,14 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { MagnifyingGlass } from "@phosphor-icons/react"
 import { formatDate } from "@/lib/format"
 
-export function UserTable() {
-  const { data: users, isLoading, isError } = useUsersQuery()
+interface UserTableProps {
+  tenantId?: string
+  readOnly?: boolean
+  basePath?: string
+}
+
+export function UserTable({ tenantId, readOnly, basePath = "/users" }: UserTableProps) {
+  const { data: users, isLoading, isError } = useUsersQuery(tenantId)
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
 
@@ -43,13 +49,17 @@ export function UserTable() {
     return (
       <div className="py-12 text-center">
         <p className="text-sm font-medium text-zinc-900">No users yet</p>
-        <p className="mt-1 text-sm text-zinc-500">Create your first user to get started.</p>
-        <Link
-          href="/users/new"
-          className="mt-4 inline-block rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors active:scale-[0.98]"
-        >
-          Create user
-        </Link>
+        <p className="mt-1 text-sm text-zinc-500">
+          {readOnly ? "This tenant has no users." : "Create your first user to get started."}
+        </p>
+        {!readOnly && (
+          <Link
+            href={`${basePath}/new`}
+            className="mt-4 inline-block rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors active:scale-[0.98]"
+          >
+            Create user
+          </Link>
+        )}
       </div>
     )
   }
@@ -77,7 +87,7 @@ export function UserTable() {
           {filtered?.map((user) => (
             <Link
               key={user.id}
-              href={`/users/${user.id}`}
+              href={`${basePath}/${user.id}`}
               className="grid grid-cols-[2fr_2fr_1fr_1fr] gap-4 px-4 py-3 text-sm transition-colors hover:bg-zinc-50"
             >
               <span className="font-medium text-zinc-900">

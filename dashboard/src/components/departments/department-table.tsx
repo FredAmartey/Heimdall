@@ -40,8 +40,14 @@ export function buildHierarchy(departments: Department[]): HierarchyItem[] {
   return result
 }
 
-export function DepartmentTable() {
-  const { data: departments, isLoading, isError } = useDepartmentsQuery()
+interface DepartmentTableProps {
+  tenantId?: string
+  readOnly?: boolean
+  basePath?: string
+}
+
+export function DepartmentTable({ tenantId, readOnly, basePath = "/departments" }: DepartmentTableProps) {
+  const { data: departments, isLoading, isError } = useDepartmentsQuery(tenantId)
   const [search, setSearch] = useState("")
   const deferredSearch = useDeferredValue(search)
 
@@ -68,13 +74,17 @@ export function DepartmentTable() {
     return (
       <div className="py-12 text-center">
         <p className="text-sm font-medium text-zinc-900">No departments yet</p>
-        <p className="mt-1 text-sm text-zinc-500">Create your first department to organize your team.</p>
-        <Link
-          href="/departments/new"
-          className="mt-4 inline-block rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors active:scale-[0.98]"
-        >
-          Create department
-        </Link>
+        <p className="mt-1 text-sm text-zinc-500">
+          {readOnly ? "This tenant has no departments." : "Create your first department to organize your team."}
+        </p>
+        {!readOnly && (
+          <Link
+            href={`${basePath}/new`}
+            className="mt-4 inline-block rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors active:scale-[0.98]"
+          >
+            Create department
+          </Link>
+        )}
       </div>
     )
   }
@@ -108,7 +118,7 @@ export function DepartmentTable() {
           {filtered.map(({ department, depth }) => (
             <Link
               key={department.id}
-              href={`/departments/${department.id}`}
+              href={`${basePath}/${department.id}`}
               className="grid grid-cols-[3fr_2fr_1fr] gap-4 px-4 py-3 text-sm transition-colors hover:bg-zinc-50"
             >
               <span

@@ -1,13 +1,25 @@
 "use client"
 
+import { useState } from "react"
+import Link from "next/link"
 import { useTenantQuery } from "@/lib/queries/tenants"
 import { formatDate } from "@/lib/format"
 import { TenantStatusBadge } from "./tenant-status-badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Users, TreeStructure, Robot, Plugs } from "@phosphor-icons/react"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Users, TreeStructure, Robot, Plugs, Warning } from "@phosphor-icons/react"
 
 export function TenantDetail({ id }: { id: string }) {
   const { data: tenant, isLoading, isError } = useTenantQuery(id)
+  const [showImpersonateDialog, setShowImpersonateDialog] = useState(false)
 
   if (isLoading) {
     return (
@@ -35,11 +47,50 @@ export function TenantDetail({ id }: { id: string }) {
   return (
     <div className="space-y-8">
       <div>
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-            {tenant.name}
-          </h1>
-          <TenantStatusBadge status={tenant.status} />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+              {tenant.name}
+            </h1>
+            <TenantStatusBadge status={tenant.status} />
+          </div>
+          <Dialog open={showImpersonateDialog} onOpenChange={setShowImpersonateDialog}>
+            <DialogTrigger asChild>
+              <button
+                className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 transition-colors hover:bg-red-100 active:scale-[0.98]"
+              >
+                <Warning size={16} />
+                Enter Tenant
+              </button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Emergency Access</DialogTitle>
+                <DialogDescription>
+                  You are about to enter <strong>{tenant.name}</strong> with full admin
+                  privileges. All actions will be logged in the audit trail.
+                </DialogDescription>
+              </DialogHeader>
+              <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                Impersonation endpoint is not yet wired. This button will be functional
+                once JWT generation is implemented.
+              </p>
+              <DialogFooter>
+                <button
+                  onClick={() => setShowImpersonateDialog(false)}
+                  className="rounded-lg px-4 py-2 text-sm text-zinc-600 hover:bg-zinc-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled
+                  className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white opacity-50 cursor-not-allowed"
+                >
+                  Enter Tenant
+                </button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
         <div className="mt-2 flex items-center gap-4 text-sm text-zinc-500">
           <span className="font-mono">{tenant.slug}</span>
@@ -48,34 +99,46 @@ export function TenantDetail({ id }: { id: string }) {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4">
+        <Link
+          href={`/tenants/${id}/users`}
+          className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+        >
           <Users size={20} className="text-zinc-400" />
           <div>
             <p className="text-xs text-zinc-500">Users</p>
             <p className="text-lg font-semibold text-zinc-900">{tenant.stats?.users ?? "--"}</p>
           </div>
-        </div>
-        <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4">
+        </Link>
+        <Link
+          href={`/tenants/${id}/departments`}
+          className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+        >
           <TreeStructure size={20} className="text-zinc-400" />
           <div>
             <p className="text-xs text-zinc-500">Departments</p>
             <p className="text-lg font-semibold text-zinc-900">{tenant.stats?.departments ?? "--"}</p>
           </div>
-        </div>
-        <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4">
+        </Link>
+        <Link
+          href={`/tenants/${id}/agents`}
+          className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+        >
           <Robot size={20} className="text-zinc-400" />
           <div>
             <p className="text-xs text-zinc-500">Agents</p>
             <p className="text-lg font-semibold text-zinc-900">{tenant.stats?.agents ?? "--"}</p>
           </div>
-        </div>
-        <div className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4">
+        </Link>
+        <Link
+          href={`/tenants/${id}/connectors`}
+          className="flex items-center gap-3 rounded-xl border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+        >
           <Plugs size={20} className="text-zinc-400" />
           <div>
             <p className="text-xs text-zinc-500">Connectors</p>
             <p className="text-lg font-semibold text-zinc-900">{tenant.stats?.connectors ?? "--"}</p>
           </div>
-        </div>
+        </Link>
       </div>
 
       <div>

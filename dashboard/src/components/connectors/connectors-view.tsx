@@ -17,9 +17,9 @@ const STATUS_PILL: Record<string, string> = {
   inactive: "bg-zinc-100 text-zinc-500",
 }
 
-export function ConnectorsView({ canWrite }: { canWrite: boolean }) {
+export function ConnectorsView({ canWrite, tenantId }: { canWrite: boolean; tenantId?: string }) {
   const [showCreate, setShowCreate] = useState(false)
-  const { data: connectors, isLoading, isError, refetch } = useConnectorsQuery()
+  const { data: connectors, isLoading, isError, refetch } = useConnectorsQuery(tenantId)
   const deleteMutation = useDeleteConnectorMutation()
 
   const handleDelete = (connector: Connector) => {
