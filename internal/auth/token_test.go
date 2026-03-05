@@ -216,6 +216,19 @@ func TestCreateImpersonationToken_ShortExpiry(t *testing.T) {
 	exp, _ := token.Claims.GetExpirationTime()
 	iat, _ := token.Claims.GetIssuedAt()
 
-	diff := exp.Time.Sub(iat.Time)
+	diff := exp.Sub(iat.Time)
 	assert.InDelta(t, 30*time.Minute, diff, float64(5*time.Second))
+}
+
+func TestCreateImpersonationToken_RejectsNonAdmin(t *testing.T) {
+	svc := auth.NewTokenService("test-secret-key-32-bytes-long!!", "valinor", 1, 24)
+
+	identity := &auth.Identity{
+		UserID:          "regular-user",
+		IsPlatformAdmin: false,
+	}
+
+	_, err := svc.CreateImpersonationToken(identity, "target-tenant-id")
+	require.Error(t, err)
+	assert.ErrorIs(t, err, auth.ErrUnauthorized)
 }

@@ -43,7 +43,18 @@ func (h *ImpersonateHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Log the impersonation attempt to the audit trail
+	// Validate tenant exists and fetch name before logging or generating tokens
+	var tenantName string
+	if h.pool != nil {
+		name, existsErr := tenantNameByID(r.Context(), h.pool, tenantID)
+		if existsErr != nil {
+			writeJSON(w, http.StatusNotFound, map[string]string{"error": fmt.Sprintf("tenant %s not found", tenantID)})
+			return
+		}
+		tenantName = name
+	}
+
+	// Log the impersonation to the audit trail (after tenant validation)
 	actorID := audit.ActorIDFromContext(r.Context())
 	if h.auditLog != nil {
 		h.auditLog.Log(r.Context(), audit.Event{
@@ -57,19 +68,6 @@ func (h *ImpersonateHandler) Handle(w http.ResponseWriter, r *http.Request) {
 			},
 			Source: "api",
 		})
-	}
-
-	// Validate tenant exists
-	if h.pool != nil {
-		exists, err := tenantExists(r.Context(), h.pool, tenantID)
-		if err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "failed to validate tenant"})
-			return
-		}
-		if !exists {
-			writeJSON(w, http.StatusNotFound, map[string]string{"error": fmt.Sprintf("tenant %s not found", tenantID)})
-			return
-		}
 	}
 
 	slog.Warn("platform admin impersonation",
@@ -86,7 +84,8 @@ func (h *ImpersonateHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{
-		"token":      token,
-		"expires_in": 1800,
+		"token":       token,
+		"expires_in":  1800,
+		"tenant_name": tenantName,
 	})
 }

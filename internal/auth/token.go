@@ -82,8 +82,12 @@ func (s *TokenService) createToken(identity *Identity, tokenType string, expiryH
 
 // CreateImpersonationToken creates a 30-minute access token scoped to a target
 // tenant with org_admin privileges. The caller's user ID is preserved as the
-// impersonator for audit purposes.
+// impersonator for audit purposes. Only platform admins may call this.
 func (s *TokenService) CreateImpersonationToken(identity *Identity, targetTenantID string) (string, error) {
+	if !identity.IsPlatformAdmin {
+		return "", fmt.Errorf("impersonation requires platform admin: %w", ErrUnauthorized)
+	}
+
 	imp := &Identity{
 		UserID:          identity.UserID,
 		TenantID:        targetTenantID,

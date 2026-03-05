@@ -76,7 +76,9 @@ func TestHandleImpersonate_Success(t *testing.T) {
 	assert.Equal(t, float64(1800), resp["expires_in"])
 
 	// Validate the returned token
-	parsed, err := tokenSvc.ValidateToken(resp["token"].(string))
+	tokenStr, ok := resp["token"].(string)
+	require.True(t, ok, "token should be a string")
+	parsed, err := tokenSvc.ValidateToken(tokenStr)
 	require.NoError(t, err)
 	assert.Equal(t, "a1b2c3d4-0001-4000-8000-000000000001", parsed.TenantID)
 	assert.Equal(t, []string{"org_admin"}, parsed.Roles)

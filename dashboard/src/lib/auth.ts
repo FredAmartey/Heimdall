@@ -173,6 +173,53 @@ export const authConfig: NextAuthConfig = {
           }),
         ]
       : []),
+
+    // Impersonation provider — accepts a pre-minted impersonation token
+    Credentials({
+      id: "impersonate",
+      credentials: {
+        token: { label: "Impersonation Token", type: "text" },
+        tenantName: { label: "Tenant Name", type: "text" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.token) return null
+
+        const token = credentials.token as string
+        const tenantName = (credentials.tenantName as string) || ""
+
+        // Decode the impersonation JWT to extract claims
+        try {
+          const payload = token.split(".")[1]
+          const json = Buffer.from(payload, "base64url").toString("utf8")
+          const claims = JSON.parse(json) as {
+            uid?: string
+            tid?: string
+            email?: string
+            name?: string
+            roles?: string[]
+            pa?: boolean
+            imp?: string
+          }
+          const roles = Array.isArray(claims.roles) ? claims.roles : []
+          return {
+            id: claims.uid ?? "",
+            email: claims.email ?? "",
+            name: claims.name ?? claims.email ?? "",
+            tenantId: claims.tid ?? null,
+            isPlatformAdmin: claims.pa ?? false,
+            isNewUser: false,
+            accessToken: token,
+            refreshToken: "",
+            expiresIn: 1800,
+            roles,
+            impersonatingTenantName: tenantName,
+          }
+        } catch {
+          console.error("Failed to decode impersonation token")
+          return null
+        }
+      },
+    }),
   ],
   callbacks: {
     authorized({ auth, request }) {
@@ -195,6 +242,20 @@ export const authConfig: NextAuthConfig = {
         token.tenantId = user.tenantId ?? null
         token.isPlatformAdmin = user.isPlatformAdmin ?? false
         token.isNewUser = user.isNewUser ?? false
+        token.roles = user.roles ?? []
+        token.impersonatingTenantName = user.impersonatingTenantName
+        return token
+      }
+
+      // Impersonation sign-in
+      if (user && account?.provider === "impersonate") {
+        token.accessToken = user.accessToken
+        token.refreshToken = user.refreshToken
+        token.expiresAt = Math.floor(Date.now() / 1000) + (user.expiresIn ?? 1800)
+        token.userId = user.id ?? ""
+        token.tenantId = user.tenantId ?? null
+        token.isPlatformAdmin = user.isPlatformAdmin ?? false
+        token.isNewUser = false
         token.roles = user.roles ?? []
         token.impersonatingTenantName = user.impersonatingTenantName
         return token

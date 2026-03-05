@@ -27,19 +27,18 @@ export function TenantDetail({ id }: { id: string }) {
   const handleImpersonate = async () => {
     setIsImpersonating(true)
     try {
-      await apiClient<{ token: string; expires_in: number }>(
+      const data = await apiClient<{ token: string; expires_in: number; tenant_name: string }>(
         `/api/v1/tenants/${id}/impersonate`,
         { method: "POST" },
       )
 
-      // Sign in with the impersonation token via dev credentials provider.
-      // The backend token already has the correct tenant context.
-      await signIn("credentials", {
-        email: "__impersonate__",
+      await signIn("impersonate", {
+        token: data.token,
+        tenantName: data.tenant_name,
         redirect: false,
       })
 
-      // Reload to pick up the new session
+      // Reload to pick up the new impersonation session
       window.location.href = "/"
     } catch (err) {
       console.error("Impersonation failed:", err)
