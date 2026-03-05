@@ -8,10 +8,11 @@ import type { Role } from "@/lib/types"
 
 interface RoleDetailProps {
   role: Role
+  readOnly?: boolean
   onDeleted: () => void
 }
 
-export function RoleDetail({ role, onDeleted }: RoleDetailProps) {
+export function RoleDetail({ role, readOnly, onDeleted }: RoleDetailProps) {
   const [permissions, setPermissions] = useState<string[]>(role.permissions)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const updateMutation = useUpdateRoleMutation()
@@ -49,7 +50,7 @@ export function RoleDetail({ role, onDeleted }: RoleDetailProps) {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {!isSystem && (
+          {!isSystem && !readOnly && (
             <>
               {isDirty && (
                 <button
@@ -87,7 +88,7 @@ export function RoleDetail({ role, onDeleted }: RoleDetailProps) {
       ) : (
         <PermissionMatrix
           permissions={permissions}
-          readonly={isSystem}
+          readonly={isSystem || !!readOnly}
           onChange={setPermissions}
         />
       )}

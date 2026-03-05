@@ -13,13 +13,13 @@ import (
 // ImpersonateHandler handles emergency impersonation requests.
 // Platform admins can impersonate a tenant to gain temporary access.
 type ImpersonateHandler struct {
-	TokenSvc *auth.TokenService
-	Pool     *pgxpool.Pool
+	tokenSvc *auth.TokenService
+	pool     *pgxpool.Pool
 }
 
 // NewImpersonateHandler creates a new impersonation handler.
 func NewImpersonateHandler(tokenSvc *auth.TokenService, pool *pgxpool.Pool) *ImpersonateHandler {
-	return &ImpersonateHandler{TokenSvc: tokenSvc, Pool: pool}
+	return &ImpersonateHandler{tokenSvc: tokenSvc, pool: pool}
 }
 
 // Handle processes POST /api/v1/tenants/{id}/impersonate.

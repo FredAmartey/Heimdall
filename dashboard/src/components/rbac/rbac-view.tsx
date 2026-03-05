@@ -39,6 +39,7 @@ export function RBACView({ tenantId, readOnly }: RBACViewProps = {}) {
         <RoleList
           selectedId={selectedId}
           onSelect={(role) => setSelectedId(role.id)}
+          tenantId={tenantId}
         />
       </div>
 
@@ -47,6 +48,7 @@ export function RBACView({ tenantId, readOnly }: RBACViewProps = {}) {
         {selectedRole ? (
           <RoleDetail
             role={selectedRole}
+            readOnly={readOnly}
             onDeleted={() => setSelectedId(null)}
           />
         ) : (

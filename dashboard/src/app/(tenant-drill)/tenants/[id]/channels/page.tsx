@@ -3,9 +3,9 @@ import type { ChannelPermissions } from "@/components/channels/channels-view"
 
 const READ_ONLY_PERMISSIONS: ChannelPermissions = {
   canWriteLinks: false,
-  canReadProviders: true,
+  canReadProviders: false,
   canWriteProviders: false,
-  canReadOutbox: true,
+  canReadOutbox: false,
   canWriteOutbox: false,
 }
 
