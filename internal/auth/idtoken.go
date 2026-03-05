@@ -39,7 +39,7 @@ func NewIDTokenValidator(cfg IDTokenValidatorConfig) *IDTokenValidator {
 // Validate parses and validates an external id_token.
 // Returns the user info extracted from the verified claims.
 func (v *IDTokenValidator) Validate(ctx context.Context, tokenString string) (*OIDCUserInfo, error) {
-	token, err := jwt.Parse(tokenString, func(t *jwt.Token) (any, error) {
+	keyFunc := func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
 		}
@@ -48,11 +48,17 @@ func (v *IDTokenValidator) Validate(ctx context.Context, tokenString string) (*O
 			return nil, fmt.Errorf("missing kid in token header")
 		}
 		return v.jwks.GetKey(ctx, kid)
-	},
+	}
+
+	opts := []jwt.ParserOption{
 		jwt.WithIssuer(v.issuer),
-		jwt.WithAudience(v.audience),
 		jwt.WithExpirationRequired(),
-	)
+	}
+	if v.audience != "" {
+		opts = append(opts, jwt.WithAudience(v.audience))
+	}
+
+	token, err := jwt.Parse(tokenString, keyFunc, opts...)
 	if err != nil {
 		return nil, fmt.Errorf("validating id_token: %w", err)
 	}

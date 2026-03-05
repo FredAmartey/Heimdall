@@ -1,5 +1,6 @@
 "use client"
 
+import { signIn } from "next-auth/react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthCard } from "@/components/auth/auth-card"
@@ -7,6 +8,8 @@ import { SocialButtons } from "@/components/auth/social-buttons"
 import { AuthDivider } from "@/components/auth/auth-divider"
 import { getClerk } from "@/lib/clerk"
 import Link from "next/link"
+
+const tenantSlug = process.env.NEXT_PUBLIC_TENANT_SLUG
 
 export default function SignUpPage() {
   const router = useRouter()
@@ -61,17 +64,29 @@ export default function SignUpPage() {
   async function handleSocialSignUp(strategy: "oauth_google" | "oauth_github") {
     setError("")
     setLoading(true)
+
     try {
       const clerk = await getClerk()
-      if (!clerk.client) return
+      if (!clerk.client) {
+        setError("Failed to initialize authentication.")
+        setLoading(false)
+        return
+      }
+
+      if (clerk.session) {
+        await clerk.signOut()
+      }
+
+      const callbackUrl = `${window.location.origin}/sso-callback`
+
       await clerk.client.signUp.authenticateWithRedirect({
         strategy,
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/sso-callback",
+        redirectUrl: callbackUrl,
+        redirectUrlComplete: callbackUrl,
       })
     } catch {
-      setLoading(false)
       setError("Social sign-up failed. Please try again.")
+      setLoading(false)
     }
   }
 
