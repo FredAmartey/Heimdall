@@ -1,10 +1,15 @@
-import type { Metadata } from "next"
+import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Valinor — Enterprise AI Agent Infrastructure",
-  description: "Deploy isolated AI agent instances per customer with multi-tenancy, RBAC, audit, and multi-channel messaging.",
-}
+  title: "Valinor — Security, observability, and governance for AI agents",
+  description:
+    "Trust AI agents with real access using visibility, isolation, governance, and auditability built for teams and enterprises.",
+};
 
-export default function MarketingLayout({ children }: { children: React.ReactNode }) {
-  return <>{children}</>
+export default function MarketingLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return <>{children}</>;
 }

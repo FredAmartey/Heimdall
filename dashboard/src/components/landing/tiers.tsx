@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useTheme, palette, RING_GRADIENT } from "./theme"
+import { useTheme, palette, RING_GRADIENT } from "./theme";
 
 const CHECK_ICON = (
   <svg
@@ -16,27 +16,26 @@ const CHECK_ICON = (
   >
     <polyline points="20 6 9 17 4 12" />
   </svg>
-)
+);
 
 interface TierSpec {
-  label: string
-  value: string
+  label: string;
+  value: string;
 }
 
 interface TierData {
-  name: string
-  description: string
-  specs: TierSpec[]
-  features: string[]
-  cta: string
-  recommended?: boolean
+  name: string;
+  description: string;
+  specs: TierSpec[];
+  features: string[];
+  cta: string;
+  recommended?: boolean;
 }
 
 const tiers: TierData[] = [
   {
     name: "Teams",
-    description:
-      "For dev teams and startups shipping AI-powered products.",
+    description: "For dev teams and startups shipping AI-powered products.",
     specs: [
       { label: "Runtime", value: "Docker containers" },
       { label: "Cold start", value: "2–5 seconds" },
@@ -70,11 +69,11 @@ const tiers: TierData[] = [
     cta: "Contact Sales",
     recommended: true,
   },
-]
+];
 
 export function Tiers() {
-  const { dark } = useTheme()
-  const c = palette(dark)
+  const { dark } = useTheme();
+  const c = palette(dark);
 
   return (
     <section
@@ -95,14 +94,14 @@ export function Tiers() {
             className="text-4xl font-bold tracking-tight sm:text-5xl transition-colors duration-500"
             style={{ color: c.textPri }}
           >
-            Choose your isolation level.
+            Choose the trust boundary that fits your team.
           </h2>
         </div>
 
         {/* ── Cards ── */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {tiers.map((tier) => {
-            const isEnterprise = tier.recommended
+            const isEnterprise = tier.recommended;
 
             return (
               <div
@@ -218,10 +217,10 @@ export function Tiers() {
                   </button>
                 )}
               </div>
-            )
+            );
           })}
         </div>
       </div>
     </section>
-  )
+  );
 }
