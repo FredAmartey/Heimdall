@@ -5,20 +5,20 @@ import { useTheme, palette } from "./theme";
 const features = [
   {
     tag: "Isolation",
-    title: "Multi-Tenant Sandboxing",
-    desc: "Each tenant runs in its own isolated runtime — Docker containers for Teams, Firecracker microVMs for Enterprise. Row-level security in the database. No cross-tenant data leaks, ever.",
+    title: "Safe boundaries by default",
+    desc: "Isolate customers, departments, and users with layered memory scopes, tenant-safe credentials, and runtime separation that keeps one team’s agent from seeing another’s state.",
     visual: "tenants",
   },
   {
-    tag: "Security",
-    title: "RBAC + Full Audit Trail",
-    desc: "Hierarchical roles with resource-level policies. Deny-by-default permissions. Every API call, agent action, and admin operation is logged with tamper-evident audit trails.",
+    tag: "Governance",
+    title: "Security that stays legible",
+    desc: "See what agents are doing, govern what they can do, and trace risky behavior across prompts, tools, channels, and admin actions with policy and audit built in.",
     visual: "roles",
   },
   {
-    tag: "Channels",
-    title: "Multi-Channel Messaging",
-    desc: "Connect agents to Slack, WhatsApp, and Telegram with managed webhooks. Conversation continuity across channels. Credential encryption at rest.",
+    tag: "Delivery",
+    title: "Channels and actions under control",
+    desc: "Connect Slack, WhatsApp, and Telegram without losing visibility. Outbound delivery, retries, and risky actions stay observable and governed instead of turning into black-box automation.",
     visual: "channels",
   },
 ] as const;
@@ -43,10 +43,7 @@ function TenantGrid({ c }: { c: ReturnType<typeof palette> }) {
             className="block h-2.5 w-2.5 rounded-full shrink-0"
             style={{ backgroundColor: t.color }}
           />
-          <span
-            className="text-sm font-medium"
-            style={{ color: c.textPri }}
-          >
+          <span className="text-sm font-medium" style={{ color: c.textPri }}>
             {t.name}
           </span>
         </div>
@@ -71,16 +68,10 @@ function RolesList({ c }: { c: ReturnType<typeof palette> }) {
           className="rounded-xl px-4 py-3 flex items-center justify-between"
           style={{ backgroundColor: c.bgAlt, border: `1px solid ${c.divider}` }}
         >
-          <span
-            className="text-sm font-mono"
-            style={{ color: c.textPri }}
-          >
+          <span className="text-sm font-mono" style={{ color: c.textPri }}>
             {r.name}
           </span>
-          <span
-            className="text-xs font-mono"
-            style={{ color: c.textMuted }}
-          >
+          <span className="text-xs font-mono" style={{ color: c.textMuted }}>
             {r.perms} perms
           </span>
         </div>
@@ -100,10 +91,7 @@ function ChannelsList({ c }: { c: ReturnType<typeof palette> }) {
           className="rounded-xl px-4 py-3 flex items-center justify-between"
           style={{ backgroundColor: c.bgAlt, border: `1px solid ${c.divider}` }}
         >
-          <span
-            className="text-sm font-medium"
-            style={{ color: c.textPri }}
-          >
+          <span className="text-sm font-medium" style={{ color: c.textPri }}>
             {ch}
           </span>
           <span className="flex items-center gap-2">
@@ -111,10 +99,7 @@ function ChannelsList({ c }: { c: ReturnType<typeof palette> }) {
               className="block h-2.5 w-2.5 rounded-full"
               style={{ backgroundColor: "#059669" }}
             />
-            <span
-              className="text-xs"
-              style={{ color: c.textMuted }}
-            >
+            <span className="text-xs" style={{ color: c.textMuted }}>
               connected
             </span>
           </span>

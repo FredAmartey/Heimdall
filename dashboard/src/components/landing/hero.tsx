@@ -1,22 +1,22 @@
-"use client"
+"use client";
 
-import { useTheme, palette, RING_GRADIENT } from "./theme"
+import { useTheme, palette, RING_GRADIENT } from "./theme";
 
 const AGENTS = [
   { name: "support-agent-01", status: "running" as const },
   { name: "onboarding-flow", status: "running" as const },
   { name: "data-analyst-v3", status: "idle" as const },
-]
+];
 
 const STATS = [
-  { label: "Active Agents", value: "24" },
-  { label: "Tenants", value: "8" },
-  { label: "Uptime", value: "99.97%" },
-]
+  { label: "Protected Agents", value: "24" },
+  { label: "Isolated Tenants", value: "8" },
+  { label: "Audit Coverage", value: "100%" },
+];
 
 export function Hero() {
-  const { dark } = useTheme()
-  const c = palette(dark)
+  const { dark } = useTheme();
+  const c = palette(dark);
 
   return (
     <section
@@ -31,30 +31,41 @@ export function Hero() {
             className="text-xs font-semibold uppercase tracking-widest"
             style={{ color: c.gold, transition: "color 0.4s" }}
           >
-            AI Agent Infrastructure
+            Security, observability, and governance for broad-access AI agents
           </span>
 
           <h1
             className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter leading-[1.08]"
             style={{ color: c.textPri, transition: "color 0.4s" }}
           >
-            Deploy AI&nbsp;Agents at Enterprise&nbsp;Scale
+            Trust AI&nbsp;agents with real&nbsp;access
           </h1>
 
           <p
             className="text-base md:text-lg leading-relaxed max-w-[520px]"
             style={{ color: c.textSec, transition: "color 0.4s" }}
           >
-            Provision, observe, and manage fleets of autonomous agents across
-            tenants — with the governance, RBAC, and reliability your
-            organisation demands.
+            Valinor gives teams and enterprises the visibility, isolation,
+            governance, and auditability needed to use AI agents securely and
+            with confidence.
+          </p>
+
+          <p
+            className="max-w-[520px] text-sm font-medium"
+            style={{ color: c.gold, transition: "color 0.4s" }}
+          >
+            Built to make agents like OpenClaw safe for real teams and
+            enterprises.
           </p>
 
           {/* CTA button with spinning gold ring border */}
           <div className="mt-2">
             <button
               className="relative overflow-hidden rounded-xl p-[2px]"
-              style={{ background: RING_GRADIENT, animation: "spin 4s linear infinite" }}
+              style={{
+                background: RING_GRADIENT,
+                animation: "spin 4s linear infinite",
+              }}
             >
               <span
                 className="block rounded-[10px] px-7 py-3 text-sm font-semibold tracking-wide cursor-pointer"
@@ -94,7 +105,7 @@ export function Hero() {
                 className="text-sm font-semibold"
                 style={{ color: c.textPri, transition: "color 0.4s" }}
               >
-                Agent Fleet
+                Security posture
               </span>
               <span
                 className="text-xs font-mono"
@@ -154,24 +165,33 @@ export function Hero() {
                   >
                     {a.name}
                   </span>
-                  <span
-                    className="text-[11px] font-medium uppercase tracking-wider rounded-full px-2.5 py-0.5"
-                    style={{
-                      background:
-                        a.status === "running"
-                          ? "rgba(16,185,129,0.15)"
-                          : dark
-                            ? "rgba(255,255,255,0.06)"
-                            : "rgba(0,0,0,0.05)",
-                      color:
-                        a.status === "running"
-                          ? "#34d399"
-                          : c.textMuted,
-                      transition: "background 0.4s, color 0.4s",
-                    }}
-                  >
-                    {a.status}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className="text-[11px] font-medium uppercase tracking-wider rounded-full px-2.5 py-0.5"
+                      style={{
+                        background:
+                          a.status === "running"
+                            ? "rgba(16,185,129,0.15)"
+                            : dark
+                              ? "rgba(255,255,255,0.06)"
+                              : "rgba(0,0,0,0.05)",
+                        color: a.status === "running" ? "#34d399" : c.textMuted,
+                        transition: "background 0.4s, color 0.4s",
+                      }}
+                    >
+                      {a.status}
+                    </span>
+                    <span
+                      className="rounded-full px-2 py-0.5 text-[11px] uppercase tracking-wider"
+                      style={{
+                        background: c.plate,
+                        color: c.textMuted,
+                        transition: "background 0.4s, color 0.4s",
+                      }}
+                    >
+                      observed
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -179,5 +199,5 @@ export function Hero() {
         </div>
       </div>
     </section>
-  )
+  );
 }

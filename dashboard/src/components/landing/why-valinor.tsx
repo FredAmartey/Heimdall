@@ -58,21 +58,21 @@ function LightningIcon({ color }: { color: string }) {
 
 const cards = [
   {
-    title: "Tenant Isolation",
+    title: "Isolation That Holds",
     description:
-      "Every customer gets their own sandboxed runtime. Docker containers or Firecracker microVMs — hardware-level isolation that keeps workloads completely separated.",
+      "Give every customer, department, and user the right boundary. Separate runtimes, layered memory scopes, and tenant-safe credentials make trust boundaries real.",
     Icon: QuadrantsIcon,
   },
   {
-    title: "Compliance Built In",
+    title: "Security That Shows Its Work",
     description:
-      "Deny-by-default RBAC, full audit trails on every action, prompt injection defense, and tool allow-listing. Security is the foundation, not an afterthought.",
+      "Prompt injection defense, execution controls, delivery oversight, and append-only audit trails help teams understand what was blocked, what ran, and why.",
     Icon: ShieldCheckIcon,
   },
   {
-    title: "Ship in Days, Not Months",
+    title: "Useful From Day One",
     description:
-      "Pre-built agent orchestration, credential management, and multi-channel messaging. One API call replaces weeks of infrastructure work.",
+      "OpenClaw-ready orchestration, channels, connectors, and trust surfaces give teams a faster path to safe agent deployment without building the control stack from scratch.",
     Icon: LightningIcon,
   },
 ];
@@ -98,8 +98,8 @@ export function WhyValinor() {
           className="mb-12 max-w-2xl text-3xl font-bold leading-tight md:text-4xl"
           style={{ color: c.textPri }}
         >
-          Infrastructure you&apos;d build yourself — already built, secured, and
-          battle-tested.
+          A safer way to run agents that touch real systems, real data, and real
+          users.
         </h2>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
