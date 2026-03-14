@@ -2,13 +2,19 @@ package policies
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/valinor-ai/valinor/internal/activity"
 	"github.com/valinor-ai/valinor/internal/platform/middleware"
 )
 
@@ -81,4 +87,63 @@ func TestHandlePutAgentOverrides_RejectsOversizedBody(t *testing.T) {
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 	assert.Contains(t, w.Body.String(), "invalid request body")
+}
+
+type recordingQuerier struct {
+	sql  string
+	args []any
+}
+
+func (q *recordingQuerier) Query(context.Context, string, ...any) (pgx.Rows, error) {
+	return nil, assert.AnError
+}
+
+func (q *recordingQuerier) Exec(_ context.Context, sql string, args ...any) (pgconn.CommandTag, error) {
+	q.sql = sql
+	q.args = args
+	return pgconn.CommandTag{}, nil
+}
+
+func (q *recordingQuerier) QueryRow(_ context.Context, sql string, args ...any) pgx.Row {
+	q.sql = sql
+	q.args = args
+	return errorRow{err: pgx.ErrNoRows}
+}
+
+type errorRow struct {
+	err error
+}
+
+func (r errorRow) Scan(...any) error {
+	return r.err
+}
+
+func TestGetAgentOverrides_ScopesToTenant(t *testing.T) {
+	store := NewStore()
+	q := &recordingQuerier{}
+	tenantID := uuid.New()
+	agentID := uuid.New()
+
+	_, err := store.GetAgentOverrides(context.Background(), q, tenantID, agentID)
+	require.Error(t, err)
+	assert.Contains(t, q.sql, "tenant_id = $2")
+	require.Len(t, q.args, 2)
+	assert.Equal(t, agentID, q.args[0])
+	assert.Equal(t, tenantID, q.args[1])
+}
+
+func TestPutAgentOverrides_ScopesToTenant(t *testing.T) {
+	store := NewStore()
+	q := &recordingQuerier{}
+	tenantID := uuid.New()
+	agentID := uuid.New()
+
+	err := store.PutAgentOverrides(context.Background(), q, tenantID, agentID, PolicySet{
+		activity.RiskClassChannelSends: DecisionAllow,
+	})
+	require.NoError(t, err)
+	assert.Contains(t, q.sql, "tenant_id = $3")
+	require.Len(t, q.args, 3)
+	assert.Equal(t, agentID, q.args[0])
+	assert.Equal(t, tenantID, q.args[2])
 }

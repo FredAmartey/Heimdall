@@ -66,6 +66,20 @@ function IconMoon() {
   )
 }
 
+function Divider({ color }: { color: string }) {
+  return (
+    <div
+      style={{
+        width: 1,
+        height: 24,
+        background: color,
+        marginInline: (G - 1) / 2,
+        transition: "background 0.5s ease",
+      }}
+    />
+  )
+}
+
 /* ── Config ── */
 
 export const LANDING_NAV = [
@@ -97,18 +111,6 @@ export function LandingToolbar({
     toggle()
     setBouncing(true)
   }
-
-  const Divider = () => (
-    <div
-      style={{
-        width: 1,
-        height: 24,
-        background: c.divider,
-        marginInline: (G - 1) / 2,
-        transition: "background 0.5s ease",
-      }}
-    />
-  )
 
   return (
     <div
@@ -158,11 +160,11 @@ export function LandingToolbar({
           >
             <item.Icon active={i === activeIdx} />
           </button>
-          {i < LANDING_NAV.length - 1 && <Divider />}
+          {i < LANDING_NAV.length - 1 && <Divider color={c.divider} />}
         </div>
       ))}
 
-      <Divider />
+      <Divider color={c.divider} />
 
       {/* Theme toggle */}
       <button

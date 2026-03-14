@@ -325,8 +325,9 @@ func (h *Handler) HandleMessage(w http.ResponseWriter, r *http.Request) {
 			_ = json.Unmarshal(reply.Payload, &blocked)
 			if h.audit != nil {
 				evt := auditFromRequest(r, "tool.blocked", "agent", agentTenant)
-				agentUUID, _ := uuid.Parse(agentID)
-				evt.ResourceID = &agentUUID
+				if agentUUID, parseErr := uuid.Parse(agentID); parseErr == nil {
+					evt.ResourceID = &agentUUID
+				}
 				evt.Metadata = map[string]any{"tool_name": blocked.ToolName, "reason": blocked.Reason}
 				h.audit.Log(r.Context(), evt)
 			}
@@ -354,8 +355,9 @@ func (h *Handler) HandleMessage(w http.ResponseWriter, r *http.Request) {
 			reason := sessionHaltReason(reply.Payload)
 			if h.audit != nil {
 				evt := auditFromRequest(r, "session.halted", "agent", agentTenant)
-				agentUUID, _ := uuid.Parse(agentID)
-				evt.ResourceID = &agentUUID
+				if agentUUID, parseErr := uuid.Parse(agentID); parseErr == nil {
+					evt.ResourceID = &agentUUID
+				}
 				evt.Metadata = map[string]any{"reason": reason}
 				evt.Source = "system"
 				h.audit.Log(r.Context(), evt)
@@ -588,8 +590,9 @@ func (h *Handler) HandleStream(w http.ResponseWriter, r *http.Request) {
 				}
 				_ = json.Unmarshal(reply.Payload, &blocked)
 				evt := auditFromRequest(r, "tool.blocked", "agent", agentTenant)
-				agentUUID, _ := uuid.Parse(agentID)
-				evt.ResourceID = &agentUUID
+				if agentUUID, parseErr := uuid.Parse(agentID); parseErr == nil {
+					evt.ResourceID = &agentUUID
+				}
 				evt.Metadata = map[string]any{"tool_name": blocked.ToolName, "reason": blocked.Reason}
 				h.audit.Log(r.Context(), evt)
 			}
@@ -623,8 +626,9 @@ func (h *Handler) HandleStream(w http.ResponseWriter, r *http.Request) {
 			reason := sessionHaltReason(reply.Payload)
 			if h.audit != nil {
 				evt := auditFromRequest(r, "session.halted", "agent", agentTenant)
-				agentUUID, _ := uuid.Parse(agentID)
-				evt.ResourceID = &agentUUID
+				if agentUUID, parseErr := uuid.Parse(agentID); parseErr == nil {
+					evt.ResourceID = &agentUUID
+				}
 				evt.Metadata = map[string]any{"reason": reason}
 				evt.Source = "system"
 				h.audit.Log(r.Context(), evt)
@@ -905,8 +909,9 @@ func (h *Handler) logToolAudit(r *http.Request, action, agentID, agentTenant str
 	_ = json.Unmarshal(payload, &meta)
 	if h.audit != nil {
 		evt := auditFromRequest(r, action, "agent", agentTenant)
-		agentUUID, _ := uuid.Parse(agentID)
-		evt.ResourceID = &agentUUID
+		if agentUUID, parseErr := uuid.Parse(agentID); parseErr == nil {
+			evt.ResourceID = &agentUUID
+		}
 		evt.Metadata = meta
 		evt.Source = "agent"
 		h.audit.Log(r.Context(), evt)

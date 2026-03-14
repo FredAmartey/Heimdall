@@ -46,7 +46,7 @@ const (
 	RiskClassDestructiveActions     = "destructive_actions"
 	RiskClassSensitiveDataAccess    = "sensitive_data_access"
 	RiskClassChannelSends           = "channel_sends"
-	RiskClassCredentialedThirdParty = "credentialed_third_party_actions"
+	RiskClassCredentialedThirdParty = "credentialed_third_party_actions" // #nosec G101 -- policy label, not a credential
 	RiskClassCrossScopeMemoryAccess = "cross_scope_memory_access"
 )
 

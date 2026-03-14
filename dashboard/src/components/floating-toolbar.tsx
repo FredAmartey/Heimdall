@@ -53,6 +53,20 @@ function IconMoon() {
   )
 }
 
+function Divider({ color }: { color: string }) {
+  return (
+    <div
+      style={{
+        width: 1,
+        height: 24,
+        background: color,
+        marginInline: (G - 1) / 2,
+        transition: "background 0.5s ease",
+      }}
+    />
+  )
+}
+
 /* ──────────────────────── Config ──────────────────────── */
 
 const NAV = [
@@ -112,18 +126,6 @@ export function FloatingToolbar() {
     dark ? "inset 0 1px 0 rgba(255,255,255,0.06)" : "inset 0 1px 0 rgba(255,255,255,0.65)",
     dark ? "inset 0 -1px 0 rgba(0,0,0,0.15)" : "inset 0 -1px 0 rgba(0,0,0,0.03)",
   ].join(",")
-
-  const Divider = () => (
-    <div
-      style={{
-        width: 1,
-        height: 24,
-        background: divClr,
-        marginInline: (G - 1) / 2,
-        transition: "background 0.5s ease",
-      }}
-    />
-  )
 
   return (
     <div
@@ -232,11 +234,11 @@ export function FloatingToolbar() {
             >
               <item.Icon active={i === activeIdx} />
             </button>
-            {i < NAV.length - 1 && <Divider />}
+            {i < NAV.length - 1 && <Divider color={divClr} />}
           </div>
         ))}
 
-        <Divider />
+        <Divider color={divClr} />
 
         {/* ── Theme toggle ── */}
         <button

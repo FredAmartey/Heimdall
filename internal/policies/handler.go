@@ -89,7 +89,7 @@ func (h *Handler) HandlePutDefaults(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) HandleGetAgentOverrides(w http.ResponseWriter, r *http.Request) {
-	_, tenantIDStr, ok := parseTenantID(w, r)
+	tenantID, tenantIDStr, ok := parseTenantID(w, r)
 	if !ok {
 		return
 	}
@@ -105,7 +105,7 @@ func (h *Handler) HandleGetAgentOverrides(w http.ResponseWriter, r *http.Request
 	var set PolicySet
 	err := database.WithTenantConnection(r.Context(), h.pool, tenantIDStr, func(ctx context.Context, q database.Querier) error {
 		var err error
-		set, err = h.store.GetAgentOverrides(ctx, q, agentID)
+		set, err = h.store.GetAgentOverrides(ctx, q, tenantID, agentID)
 		return err
 	})
 	if err != nil {
@@ -117,7 +117,7 @@ func (h *Handler) HandleGetAgentOverrides(w http.ResponseWriter, r *http.Request
 }
 
 func (h *Handler) HandlePutAgentOverrides(w http.ResponseWriter, r *http.Request) {
-	_, tenantIDStr, ok := parseTenantID(w, r)
+	tenantID, tenantIDStr, ok := parseTenantID(w, r)
 	if !ok {
 		return
 	}
@@ -144,7 +144,7 @@ func (h *Handler) HandlePutAgentOverrides(w http.ResponseWriter, r *http.Request
 	}
 
 	err := database.WithTenantConnection(r.Context(), h.pool, tenantIDStr, func(ctx context.Context, q database.Querier) error {
-		return h.store.PutAgentOverrides(ctx, q, agentID, body.Policies)
+		return h.store.PutAgentOverrides(ctx, q, tenantID, agentID, body.Policies)
 	})
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "update failed"})

@@ -99,15 +99,15 @@ func (s *Store) PutTenantDefaults(ctx context.Context, q database.Querier, tenan
 	return nil
 }
 
-func (s *Store) GetAgentOverrides(ctx context.Context, q database.Querier, agentID uuid.UUID) (PolicySet, error) {
+func (s *Store) GetAgentOverrides(ctx context.Context, q database.Querier, tenantID, agentID uuid.UUID) (PolicySet, error) {
 	var raw json.RawMessage
-	if err := q.QueryRow(ctx, `SELECT config FROM agent_instances WHERE id = $1`, agentID).Scan(&raw); err != nil {
+	if err := q.QueryRow(ctx, `SELECT config FROM agent_instances WHERE id = $1 AND tenant_id = $2`, agentID, tenantID).Scan(&raw); err != nil {
 		return nil, fmt.Errorf("loading agent config: %w", err)
 	}
 	return extractPolicies(raw, "policy_overrides"), nil
 }
 
-func (s *Store) PutAgentOverrides(ctx context.Context, q database.Querier, agentID uuid.UUID, set PolicySet) error {
+func (s *Store) PutAgentOverrides(ctx context.Context, q database.Querier, tenantID, agentID uuid.UUID, set PolicySet) error {
 	if err := ValidatePolicySet(set); err != nil {
 		return err
 	}
@@ -118,9 +118,10 @@ func (s *Store) PutAgentOverrides(ctx context.Context, q database.Querier, agent
 	if _, err := q.Exec(ctx,
 		`UPDATE agent_instances
 		    SET config = jsonb_set(COALESCE(config, '{}'::jsonb), '{policy_overrides}', $2::jsonb, true)
-		  WHERE id = $1`,
+		  WHERE id = $1 AND tenant_id = $3`,
 		agentID,
 		payload,
+		tenantID,
 	); err != nil {
 		return fmt.Errorf("updating agent policy overrides: %w", err)
 	}
