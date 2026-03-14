@@ -56,9 +56,13 @@ Security, IT, platform, operations, and departmental teams that want to use AI a
 
 Companies deploying agents to their own customers who need hard customer isolation, tenant-safe channels, and policy/governance around shared infrastructure.
 
-### 3. High-trust businesses
+### 3. Regulated industries
 
-Organizations like clubs, agencies, finance teams, recruiting firms, and legal teams that need AI agents to be useful while still being constrained, observable, and safe.
+Healthcare, finance, legal, and other compliance-heavy environments where agent interactions must be logged, access controlled, and data isolated. Valinor's RLS, audit trail, and credential encryption address compliance requirements.
+
+### 4. High-trust businesses
+
+Organizations like sports clubs, agencies, recruiting firms, and other high-stakes teams that need AI agents to be useful while still being constrained, observable, and safe.
 
 ## Product Pillars
 
