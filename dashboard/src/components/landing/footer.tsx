@@ -2,6 +2,16 @@
 
 import { useTheme, palette, RING_GRADIENT } from "./theme"
 
+const TECHNICAL_ARCHITECTURE_URL =
+  "https://github.com/FredAmartey/Valinor/blob/master/docs/architecture.md"
+
+const FOOTER_LINKS = [
+  { label: "Architecture", href: "/architecture" },
+  { label: "Docs", href: TECHNICAL_ARCHITECTURE_URL },
+  { label: "GitHub", href: "https://github.com/FredAmartey/Valinor" },
+  { label: "Contact", href: "/landing#contact" },
+] as const
+
 export function FooterCta() {
   const { dark } = useTheme()
   const c = palette(dark)
@@ -58,6 +68,14 @@ export function FooterCta() {
             Request a Demo
           </div>
         </button>
+
+        <a
+          href="/architecture"
+          className="mt-4 text-sm font-medium no-underline hover:underline"
+          style={{ color: c.textMuted, transition: "color 0.3s ease" }}
+        >
+          Read the architecture
+        </a>
       </section>
 
       {/* Footer */}
@@ -70,14 +88,17 @@ export function FooterCta() {
             Valinor
           </span>
           <div className="flex gap-6">
-            {["Docs", "GitHub", "Contact"].map((link) => (
+            {FOOTER_LINKS.map((link) => (
               <a
-                key={link}
-                href="#"
+                key={link.label}
+                href={link.href}
                 className="text-sm no-underline hover:underline"
                 style={{ color: c.textMuted, transition: "color 0.3s ease" }}
+                {...(link.href.startsWith("https://")
+                  ? { target: "_blank", rel: "noreferrer" }
+                  : {})}
               >
-                {link}
+                {link.label}
               </a>
             ))}
           </div>
