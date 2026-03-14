@@ -23,6 +23,7 @@ const (
 var (
 	ErrApprovalNotFound   = errors.New("approval request not found")
 	ErrApprovalNotPending = errors.New("approval request is not pending")
+	ErrApprovalSelfReview = errors.New("approval requester cannot review their own approval")
 )
 
 type Request struct {
@@ -78,48 +79,31 @@ func (s *Store) Create(ctx context.Context, q database.Querier, params CreatePar
 		}
 	}
 
-	var request Request
-	if err := q.QueryRow(ctx,
-		`INSERT INTO approval_requests (
+	request, err := scanRequest(func(dest ...any) error {
+		return q.QueryRow(ctx,
+			`INSERT INTO approval_requests (
 		        tenant_id, agent_id, requested_by, channel_outbox_id, risk_class,
 		        status, target_type, target_label, action_summary, metadata, expires_at
 		 )
 		 VALUES ($1, $2, $3, $4, $5, 'pending', $6, $7, $8, $9, $10)
 		 RETURNING id, tenant_id, agent_id, requested_by, reviewed_by, channel_outbox_id, risk_class,
 		           status, target_type, target_label, action_summary, metadata, created_at, reviewed_at, expires_at`,
-		params.TenantID,
-		params.AgentID,
-		params.RequestedBy,
-		params.ChannelOutboxID,
-		params.RiskClass,
-		params.TargetType,
-		params.TargetLabel,
-		params.ActionSummary,
-		metadataJSON,
-		params.ExpiresAt,
-	).Scan(
-		&request.ID,
-		&request.TenantID,
-		&request.AgentID,
-		&request.RequestedBy,
-		&request.ReviewedBy,
-		&request.ChannelOutboxID,
-		&request.RiskClass,
-		&request.Status,
-		&request.TargetType,
-		&request.TargetLabel,
-		&request.ActionSummary,
-		&metadataJSON,
-		&request.CreatedAt,
-		&request.ReviewedAt,
-		&request.ExpiresAt,
-	); err != nil {
+			params.TenantID,
+			params.AgentID,
+			params.RequestedBy,
+			params.ChannelOutboxID,
+			params.RiskClass,
+			params.TargetType,
+			params.TargetLabel,
+			params.ActionSummary,
+			metadataJSON,
+			params.ExpiresAt,
+		).Scan(dest...)
+	})
+	if err != nil {
 		return nil, fmt.Errorf("creating approval request: %w", err)
 	}
-	if len(metadataJSON) > 0 {
-		_ = json.Unmarshal(metadataJSON, &request.Metadata)
-	}
-	return &request, nil
+	return request, nil
 }
 
 func (s *Store) List(ctx context.Context, q database.Querier, params ListParams) ([]Request, error) {
@@ -146,33 +130,11 @@ func (s *Store) List(ctx context.Context, q database.Querier, params ListParams)
 
 	var requests []Request
 	for rows.Next() {
-		var (
-			request      Request
-			metadataJSON json.RawMessage
-		)
-		if err := rows.Scan(
-			&request.ID,
-			&request.TenantID,
-			&request.AgentID,
-			&request.RequestedBy,
-			&request.ReviewedBy,
-			&request.ChannelOutboxID,
-			&request.RiskClass,
-			&request.Status,
-			&request.TargetType,
-			&request.TargetLabel,
-			&request.ActionSummary,
-			&metadataJSON,
-			&request.CreatedAt,
-			&request.ReviewedAt,
-			&request.ExpiresAt,
-		); err != nil {
+		request, err := scanRequest(rows.Scan)
+		if err != nil {
 			return nil, fmt.Errorf("scanning approval request: %w", err)
 		}
-		if len(metadataJSON) > 0 {
-			_ = json.Unmarshal(metadataJSON, &request.Metadata)
-		}
-		requests = append(requests, request)
+		requests = append(requests, *request)
 	}
 	return requests, rows.Err()
 }
@@ -186,11 +148,18 @@ func (s *Store) Deny(ctx context.Context, q database.Querier, approvalID, review
 }
 
 func (s *Store) resolve(ctx context.Context, q database.Querier, approvalID, reviewerID, tenantID uuid.UUID, status string) (*Request, error) {
-	var (
-		request      Request
-		metadataJSON json.RawMessage
-	)
-	err := q.QueryRow(ctx,
+	existing, err := s.getForResolve(ctx, q, approvalID, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	if existing.RequestedBy != nil && *existing.RequestedBy == reviewerID {
+		return nil, ErrApprovalSelfReview
+	}
+	if existing.Status != StatusPending {
+		return nil, ErrApprovalNotPending
+	}
+
+	request, err := scanRequestRow(q.QueryRow(ctx,
 		`UPDATE approval_requests
 		    SET status = $2, reviewed_by = $3, reviewed_at = now()
 		  WHERE id = $1
@@ -203,31 +172,12 @@ func (s *Store) resolve(ctx context.Context, q database.Querier, approvalID, rev
 		status,
 		reviewerID,
 		tenantID,
-	).Scan(
-		&request.ID,
-		&request.TenantID,
-		&request.AgentID,
-		&request.RequestedBy,
-		&request.ReviewedBy,
-		&request.ChannelOutboxID,
-		&request.RiskClass,
-		&request.Status,
-		&request.TargetType,
-		&request.TargetLabel,
-		&request.ActionSummary,
-		&metadataJSON,
-		&request.CreatedAt,
-		&request.ReviewedAt,
-		&request.ExpiresAt,
-	)
+	))
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, ErrApprovalNotPending
 		}
 		return nil, fmt.Errorf("resolving approval request: %w", err)
-	}
-	if len(metadataJSON) > 0 {
-		_ = json.Unmarshal(metadataJSON, &request.Metadata)
 	}
 	if request.ChannelOutboxID != nil {
 		if status == StatusApproved {
@@ -249,5 +199,68 @@ func (s *Store) resolve(ctx context.Context, q database.Querier, approvalID, rev
 			return nil, fmt.Errorf("updating linked outbox status: %w", err)
 		}
 	}
+	return request, nil
+}
+
+func (s *Store) getForResolve(ctx context.Context, q database.Querier, approvalID, tenantID uuid.UUID) (*Request, error) {
+	request, err := scanRequestRow(q.QueryRow(ctx,
+		`SELECT id, tenant_id, agent_id, requested_by, reviewed_by, channel_outbox_id, risk_class,
+		        status, target_type, target_label, action_summary, metadata, created_at, reviewed_at, expires_at
+		   FROM approval_requests
+		  WHERE id = $1
+		    AND tenant_id = $2`,
+		approvalID,
+		tenantID,
+	))
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrApprovalNotFound
+		}
+		return nil, fmt.Errorf("loading approval request: %w", err)
+	}
+	return request, nil
+}
+
+func scanRequest(scan func(dest ...any) error) (*Request, error) {
+	var (
+		request      Request
+		metadataJSON json.RawMessage
+	)
+	if err := scan(
+		&request.ID,
+		&request.TenantID,
+		&request.AgentID,
+		&request.RequestedBy,
+		&request.ReviewedBy,
+		&request.ChannelOutboxID,
+		&request.RiskClass,
+		&request.Status,
+		&request.TargetType,
+		&request.TargetLabel,
+		&request.ActionSummary,
+		&metadataJSON,
+		&request.CreatedAt,
+		&request.ReviewedAt,
+		&request.ExpiresAt,
+	); err != nil {
+		return nil, err
+	}
+	if err := decodeRequestMetadata(metadataJSON, &request.Metadata); err != nil {
+		return nil, err
+	}
 	return &request, nil
+}
+
+func scanRequestRow(row pgx.Row) (*Request, error) {
+	return scanRequest(row.Scan)
+}
+
+func decodeRequestMetadata(metadataJSON json.RawMessage, dest *map[string]any) error {
+	if len(metadataJSON) == 0 {
+		return nil
+	}
+	if err := json.Unmarshal(metadataJSON, dest); err != nil {
+		return fmt.Errorf("unmarshaling approval metadata: %w", err)
+	}
+	return nil
 }
