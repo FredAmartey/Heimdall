@@ -217,6 +217,7 @@ func (d *OutboxDispatcher) applyOutboundScan(ctx context.Context, q database.Que
 			return report, false, fmt.Errorf("review required by outbound scan but no review sink is configured")
 		}
 		if err := d.reviewSink.CreateReview(ctx, q, OutboundReviewRequest{
+			TenantID:  job.TenantID,
 			OutboxID:  job.ID,
 			Provider:  job.Provider,
 			Recipient: job.RecipientID,

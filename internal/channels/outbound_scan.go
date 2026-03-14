@@ -40,6 +40,7 @@ type OutboundScanner interface {
 }
 
 type OutboundReviewRequest struct {
+	TenantID  uuid.UUID
 	OutboxID  uuid.UUID
 	Provider  string
 	Recipient string
