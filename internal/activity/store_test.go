@@ -144,3 +144,25 @@ func TestBuildSecurityListQuery(t *testing.T) {
 	assert.Equal(t, tenantID, args[0])
 	assert.Equal(t, 25, args[1])
 }
+
+func TestBuildSecurityListQuery_PreservesAdditionalFilters(t *testing.T) {
+	tenantID := uuid.New()
+	agentID := uuid.New()
+	status := StatusBlocked
+
+	sql, args := buildSecurityListQuery(ListEventsParams{
+		TenantID: tenantID,
+		AgentID:  &agentID,
+		Status:   &status,
+		Limit:    10,
+	})
+
+	assert.Contains(t, sql, "tenant_id = $1")
+	assert.Contains(t, sql, "(kind = 'security.flagged' OR status IN ('blocked', 'flagged', 'halted', 'approval_required'))")
+	assert.Contains(t, sql, "agent_id = $2")
+	assert.Contains(t, sql, "status = $3")
+	assert.Equal(t, tenantID, args[0])
+	assert.Equal(t, agentID, args[1])
+	assert.Equal(t, status, args[2])
+	assert.Equal(t, 10, args[3])
+}

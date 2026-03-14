@@ -132,6 +132,10 @@ type ListEventsParams struct {
 }
 
 func buildListQuery(params ListEventsParams) (string, []any) {
+	return buildListQueryWithExtraConditions(params, nil)
+}
+
+func buildListQueryWithExtraConditions(params ListEventsParams, extraConditions []string) (string, []any) {
 	var (
 		conditions []string
 		args       []any
@@ -187,6 +191,7 @@ func buildListQuery(params ListEventsParams) (string, []any) {
 		args = append(args, *params.Before)
 		argN++
 	}
+	conditions = append(conditions, extraConditions...)
 
 	sql := fmt.Sprintf(
 		`SELECT id, tenant_id, agent_id, user_id, department_id, session_id, correlation_id, approval_id, connector_id,
@@ -204,12 +209,7 @@ func buildListQuery(params ListEventsParams) (string, []any) {
 }
 
 func buildSecurityListQuery(params ListEventsParams) (string, []any) {
-	baseSQL, args := buildListQuery(params)
-	baseSQL = strings.Replace(
-		baseSQL,
-		"WHERE tenant_id = $1",
-		"WHERE tenant_id = $1 AND (kind = 'security.flagged' OR status IN ('blocked', 'flagged', 'halted', 'approval_required'))",
-		1,
-	)
-	return baseSQL, args
+	return buildListQueryWithExtraConditions(params, []string{
+		"(kind = 'security.flagged' OR status IN ('blocked', 'flagged', 'halted', 'approval_required'))",
+	})
 }

@@ -55,3 +55,15 @@ func TestStoreApproveScopesResolutionToTenant(t *testing.T) {
 	assert.Equal(t, reviewerID, q.args[2])
 	assert.Equal(t, tenantID, q.args[3])
 }
+
+func TestStoreApprovePreventsSelfApproval(t *testing.T) {
+	store := NewStore()
+	q := &recordingQuerier{}
+	approvalID := uuid.New()
+	reviewerID := uuid.New()
+	tenantID := uuid.New()
+
+	_, err := store.Approve(context.Background(), q, approvalID, reviewerID, tenantID)
+	require.ErrorIs(t, err, ErrApprovalNotPending)
+	assert.Contains(t, q.sql, "(requested_by IS NULL OR requested_by <> $3)")
+}

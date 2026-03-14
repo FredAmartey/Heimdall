@@ -11,6 +11,8 @@ import (
 	"github.com/valinor-ai/valinor/internal/platform/middleware"
 )
 
+const maxPolicyBodyBytes int64 = 64 << 10
+
 type Handler struct {
 	pool  *pgxpool.Pool
 	store *Store
@@ -65,6 +67,7 @@ func (h *Handler) HandlePutDefaults(w http.ResponseWriter, r *http.Request) {
 	var body struct {
 		Policies PolicySet `json:"policies"`
 	}
+	r.Body = http.MaxBytesReader(w, r.Body, maxPolicyBodyBytes)
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 		return
@@ -130,6 +133,7 @@ func (h *Handler) HandlePutAgentOverrides(w http.ResponseWriter, r *http.Request
 	var body struct {
 		Policies PolicySet `json:"policies"`
 	}
+	r.Body = http.MaxBytesReader(w, r.Body, maxPolicyBodyBytes)
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "invalid request body"})
 		return

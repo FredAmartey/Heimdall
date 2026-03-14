@@ -193,7 +193,10 @@ func (s *Store) resolve(ctx context.Context, q database.Querier, approvalID, rev
 	err := q.QueryRow(ctx,
 		`UPDATE approval_requests
 		    SET status = $2, reviewed_by = $3, reviewed_at = now()
-		  WHERE id = $1 AND status = 'pending' AND tenant_id = $4
+		  WHERE id = $1
+		    AND status = 'pending'
+		    AND tenant_id = $4
+		    AND (requested_by IS NULL OR requested_by <> $3)
 		  RETURNING id, tenant_id, agent_id, requested_by, reviewed_by, channel_outbox_id, risk_class,
 		            status, target_type, target_label, action_summary, metadata, created_at, reviewed_at, expires_at`,
 		approvalID,

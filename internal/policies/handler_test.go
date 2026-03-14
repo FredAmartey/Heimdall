@@ -1,11 +1,13 @@
 package policies
 
 import (
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/valinor-ai/valinor/internal/platform/middleware"
 )
@@ -54,4 +56,29 @@ func TestHandleGetAgentOverrides_InvalidAgentID(t *testing.T) {
 	h.HandleGetAgentOverrides(w, req)
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestHandlePutDefaults_RejectsOversizedBody(t *testing.T) {
+	h := NewHandler(&pgxpool.Pool{}, nil)
+	req := httptest.NewRequest("PUT", "/api/v1/policies/defaults", bytes.NewReader(bytes.Repeat([]byte("a"), int(maxPolicyBodyBytes)+1)))
+	req = req.WithContext(middleware.WithTenantID(req.Context(), "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"))
+	w := httptest.NewRecorder()
+
+	h.HandlePutDefaults(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), "invalid request body")
+}
+
+func TestHandlePutAgentOverrides_RejectsOversizedBody(t *testing.T) {
+	h := NewHandler(&pgxpool.Pool{}, nil)
+	req := httptest.NewRequest("PUT", "/api/v1/agents/190f3a21-3b2c-42ce-b26e-2f448a58ec14/policy-overrides", bytes.NewReader(bytes.Repeat([]byte("a"), int(maxPolicyBodyBytes)+1)))
+	req.SetPathValue("id", "190f3a21-3b2c-42ce-b26e-2f448a58ec14")
+	req = req.WithContext(middleware.WithTenantID(req.Context(), "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"))
+	w := httptest.NewRecorder()
+
+	h.HandlePutAgentOverrides(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+	assert.Contains(t, w.Body.String(), "invalid request body")
 }
