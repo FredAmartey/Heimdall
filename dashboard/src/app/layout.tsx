@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Valinor Dashboard",
-  description: "Admin dashboard for the Valinor AI agent control plane",
+  description: "Admin dashboard for secure, observable, and governable AI agents.",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
