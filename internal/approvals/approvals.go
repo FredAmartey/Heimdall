@@ -17,7 +17,7 @@ const (
 	StatusApproved  = "approved"
 	StatusDenied    = "denied"
 	StatusExpired   = "expired"
-	StatusCancelled = "cancelled"
+	StatusCancelled = "cancelled" //nolint:misspell // Stored/API status spelling is already established.
 )
 
 var (

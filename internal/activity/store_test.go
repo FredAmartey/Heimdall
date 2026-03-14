@@ -65,7 +65,7 @@ func TestBuildBatchInsert(t *testing.T) {
 	assert.Len(t, args, 52)
 	assert.Equal(t, tenantID, args[0])
 	require.IsType(t, &uuid.UUID{}, args[1])
-	assert.Equal(t, agentID, *(args[1].(*uuid.UUID)))
+	require.Equal(t, agentID, *(args[1].(*uuid.UUID)))
 	assert.Equal(t, ProvenanceControlPlaneHTTP, args[13])
 	assert.Equal(t, "request.accepted", args[14])
 	assert.Equal(t, "http", args[15])
