@@ -38,3 +38,5 @@ ALTER TABLE approval_requests ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tenant_isolation ON approval_requests
     USING (tenant_id = current_setting('app.current_tenant_id', true)::UUID);
+
+REVOKE DELETE ON approval_requests FROM PUBLIC;

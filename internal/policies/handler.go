@@ -3,7 +3,6 @@ package policies
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -174,8 +173,4 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(value)
-}
-
-func isValidationError(err error) bool {
-	return errors.Is(err, ErrInvalidDecision) || errors.Is(err, ErrInvalidRiskClass)
 }

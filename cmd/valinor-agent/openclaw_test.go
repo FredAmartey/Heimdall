@@ -19,10 +19,14 @@ import (
 func recvNonRuntimeEvent(t *testing.T, ctx context.Context, conn *proxy.AgentConn) proxy.Frame {
 	t.Helper()
 
+	const maxRuntimeEvents = 64
+	runtimeEventsSeen := 0
 	for {
 		frame, err := conn.Recv(ctx)
 		require.NoError(t, err)
 		if frame.Type == proxy.TypeRuntimeEvent {
+			runtimeEventsSeen++
+			require.LessOrEqual(t, runtimeEventsSeen, maxRuntimeEvents, "saw too many runtime events without a terminal frame")
 			continue
 		}
 		return frame

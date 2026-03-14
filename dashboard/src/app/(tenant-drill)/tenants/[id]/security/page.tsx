@@ -1,3 +1,5 @@
+import { auth } from "@/lib/auth";
+import { hasPermission } from "@/lib/permissions";
 import { SecurityEventsView } from "@/components/security/security-events-view";
 import { ShieldWarning } from "@phosphor-icons/react/dist/ssr";
 
@@ -7,6 +9,23 @@ export default async function TenantSecurityPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const session = await auth();
+  const canRead = hasPermission(
+    session?.user?.isPlatformAdmin ?? false,
+    session?.user?.roles ?? [],
+    "audit:read",
+  );
+
+  if (!canRead) {
+    return (
+      <div className="py-12 text-center">
+        <p className="text-sm font-medium text-zinc-900">Access denied</p>
+        <p className="mt-1 text-sm text-zinc-500">
+          You do not have permission to view tenant security events.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
