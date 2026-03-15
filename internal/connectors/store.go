@@ -36,6 +36,8 @@ func (s *Store) Create(ctx context.Context, q database.Querier, name, connectorT
 	}
 	if tools == nil {
 		tools = json.RawMessage(`[]`)
+	} else if err := ValidateToolsJSON(tools); err != nil {
+		return nil, err
 	}
 	if resources == nil {
 		resources = json.RawMessage(`[]`)
