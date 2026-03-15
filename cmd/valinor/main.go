@@ -300,6 +300,9 @@ func run() error {
 			PingTimeout:      time.Duration(cfg.Proxy.PingTimeout) * time.Second,
 			WSAllowedOrigins: cfg.CORS.AllowedOrigins,
 		}, &sentinelAdapter{s: sentinelScanner}, &auditAdapter{l: auditLogger}).WithActivityLogger(activityLogger).WithUserContextStore(userContextStore).WithTokenValidator(tokenSvc).WithRBACEvaluator(rbacEngine).WithConnectorApprovalService(connectorApprovalService)
+		if approvalHandler != nil {
+			approvalHandler = approvalHandler.WithConnectorActionResolver(proxy.NewConnectorActionResolver(pool, connPool, orchManager, governedActionStore))
+		}
 	}
 	if connPool != nil {
 		defer connPool.Close()

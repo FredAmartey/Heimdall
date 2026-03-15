@@ -9,9 +9,10 @@ import (
 
 // Frame type constants — Control Plane → Agent
 const (
-	TypeConfigUpdate = "config_update"
-	TypeMessage      = "message"
-	TypePing         = "ping"
+	TypeConfigUpdate          = "config_update"
+	TypeMessage               = "message"
+	TypePing                  = "ping"
+	TypeConnectorActionResume = "connector_action_resume"
 )
 
 // Frame type constants — Agent → Control Plane
@@ -61,6 +62,15 @@ type ApprovalRequiredPayload struct {
 	TargetType              string `json:"target_type,omitempty"`
 	TargetLabelTemplate     string `json:"target_label_template,omitempty"`
 	ApprovalSummaryTemplate string `json:"approval_summary_template,omitempty"`
+}
+
+type ConnectorActionResumePayload struct {
+	ActionID    string `json:"action_id"`
+	ApprovalID  string `json:"approval_id,omitempty"`
+	ConnectorID string `json:"connector_id,omitempty"`
+	ToolName    string `json:"tool_name"`
+	Arguments   string `json:"arguments,omitempty"`
+	RiskClass   string `json:"risk_class,omitempty"`
 }
 
 // MaxFrameSize limits frame payloads to 4 MB.

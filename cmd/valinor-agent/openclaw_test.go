@@ -913,6 +913,89 @@ func TestForwardToOpenClaw_GovernedConnectorWriteAwaitingApproval(t *testing.T) 
 	assert.Equal(t, 0, mcpCalls, "approval-required governed write must pause before external execution")
 }
 
+func TestHandleConnectorActionResume_ExecutesApprovedAction(t *testing.T) {
+	mcpCalls := 0
+	mockMCP := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mcpCalls++
+		var req jsonRPCRequest
+		require.NoError(t, json.NewDecoder(r.Body).Decode(&req))
+		resp := jsonRPCResponse{
+			JSONRPC: "2.0",
+			ID:      req.ID,
+			Result: &toolCallResult{
+				Content: []contentBlock{{Type: "text", Text: `{"updated":true}`}},
+			},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(resp)
+	}))
+	defer mockMCP.Close()
+
+	agent := &Agent{
+		httpClient: &http.Client{Timeout: 5 * time.Second},
+		mcp:        newMCPClient(&http.Client{Timeout: 5 * time.Second}),
+		connectors: []AgentConnector{
+			{
+				ID:       "connector-crm",
+				Name:     "crm-api",
+				Endpoint: mockMCP.URL,
+				Auth:     json.RawMessage(`{}`),
+				Tools:    []string{"update_contact"},
+			},
+		},
+	}
+
+	server, client := net.Pipe()
+	defer server.Close()
+	defer client.Close()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	go agent.handleConnection(ctx, server)
+
+	cp := proxy.NewAgentConn(client)
+	_, err := cp.Recv(ctx)
+	require.NoError(t, err)
+
+	payload, err := json.Marshal(proxy.ConnectorActionResumePayload{
+		ActionID:    "action-123",
+		ApprovalID:  "approval-123",
+		ConnectorID: "connector-crm",
+		ToolName:    "update_contact",
+		Arguments:   `{"id":"123"}`,
+		RiskClass:   "external_writes",
+	})
+	require.NoError(t, err)
+
+	err = cp.Send(ctx, proxy.Frame{
+		Type:    proxy.TypeConnectorActionResume,
+		ID:      "resume-connector-action",
+		Payload: payload,
+	})
+	require.NoError(t, err)
+
+	var sawCompletedRuntimeEvent bool
+	for {
+		reply, recvErr := cp.Recv(ctx)
+		require.NoError(t, recvErr)
+		switch reply.Type {
+		case proxy.TypeRuntimeEvent:
+			var evt proxy.RuntimeEventPayload
+			require.NoError(t, json.Unmarshal(reply.Payload, &evt))
+			if evt.EventType == "connector.resume_completed" {
+				sawCompletedRuntimeEvent = true
+			}
+		case proxy.TypeToolExecuted:
+			assert.True(t, sawCompletedRuntimeEvent, "expected completion runtime event before tool execution audit")
+			assert.Equal(t, 1, mcpCalls)
+			return
+		default:
+			t.Fatalf("unexpected frame type: %s", reply.Type)
+		}
+	}
+}
+
 func TestForwardToOpenClaw_ToolCallLoop_ConnectorNotFound(t *testing.T) {
 	// OpenClaw returns a tool call for a tool that has no connector
 	mockOpenClaw := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

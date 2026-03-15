@@ -159,6 +159,8 @@ func (a *Agent) handleConnection(ctx context.Context, raw net.Conn) {
 			a.handleConfigUpdate(ctx, conn, frame)
 		case proxy.TypeMessage:
 			go a.handleMessage(ctx, conn, frame)
+		case proxy.TypeConnectorActionResume:
+			go a.handleConnectorActionResume(ctx, conn, frame)
 		case proxy.TypePing:
 			pong := proxy.Frame{
 				Type:    proxy.TypePong,
