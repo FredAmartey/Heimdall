@@ -256,6 +256,79 @@ func (a *Agent) forwardToOpenClaw(ctx context.Context, conn *proxy.AgentConn, fr
 				continue
 			}
 
+			if governance, ok := connector.GovernedTools[tc.Function.Name]; ok {
+				switch governance.Decision {
+				case "block":
+					a.emitRuntimeEvent(ctx, conn, frame.ID, proxy.RuntimeEventPayload{
+						EventType:     "connector.blocked",
+						Kind:          "connector.blocked",
+						Title:         "Connector write blocked",
+						Summary:       fmt.Sprintf("%s was blocked before external execution.", tc.Function.Name),
+						Status:        "blocked",
+						RiskClass:     governance.RiskClass,
+						RuntimeSource: "openclaw",
+						Metadata: map[string]any{
+							"connector_id":   connector.ID,
+							"connector_name": connector.Name,
+							"tool_name":      tc.Function.Name,
+							"decision":       governance.Decision,
+						},
+					})
+					payload, marshalErr := json.Marshal(map[string]string{
+						"tool_name":      tc.Function.Name,
+						"connector_name": connector.Name,
+						"risk_class":     governance.RiskClass,
+						"reason":         "governed connector write blocked by policy",
+					})
+					if marshalErr != nil {
+						slog.Error("marshal governed tool_blocked payload failed", "error", marshalErr)
+						return
+					}
+					_ = conn.Send(ctx, proxy.Frame{
+						Type:    proxy.TypeToolBlocked,
+						ID:      frame.ID,
+						Payload: payload,
+					})
+					return
+				case "require_approval":
+					a.emitRuntimeEvent(ctx, conn, frame.ID, proxy.RuntimeEventPayload{
+						EventType:     "connector.awaiting_approval",
+						Kind:          "connector.called",
+						Title:         "Connector write waiting for approval",
+						Summary:       fmt.Sprintf("%s is paused until approval is granted.", tc.Function.Name),
+						Status:        "approval_required",
+						RiskClass:     governance.RiskClass,
+						RuntimeSource: "openclaw",
+						Metadata: map[string]any{
+							"connector_id":   connector.ID,
+							"connector_name": connector.Name,
+							"tool_name":      tc.Function.Name,
+							"decision":       governance.Decision,
+						},
+					})
+					payload, marshalErr := json.Marshal(proxy.ApprovalRequiredPayload{
+						ConnectorID:             connector.ID,
+						ConnectorName:           connector.Name,
+						ToolName:                tc.Function.Name,
+						Arguments:               tc.Function.Arguments,
+						RiskClass:               governance.RiskClass,
+						TargetType:              governance.TargetType,
+						TargetLabelTemplate:     governance.TargetLabelTemplate,
+						ApprovalSummaryTemplate: governance.ApprovalSummaryTemplate,
+					})
+					if marshalErr != nil {
+						slog.Error("marshal approval_required payload failed", "error", marshalErr)
+						return
+					}
+					_ = conn.Send(ctx, proxy.Frame{
+						Type:    proxy.TypeApprovalRequired,
+						ID:      frame.ID,
+						Payload: payload,
+					})
+					return
+				}
+			}
+
 			toolResult, callErr := a.mcp.callTool(ctx, connector, tc.Function.Name, tc.Function.Arguments)
 			elapsed := time.Since(start)
 

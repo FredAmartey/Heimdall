@@ -471,6 +471,101 @@ func TestHandleMessage_LogsSessionHaltReasonOnly(t *testing.T) {
 	assert.Equal(t, "canary_leak", haltEvent.Summary)
 }
 
+func TestHandleMessage_ReturnsAwaitingApprovalForConnectorAction(t *testing.T) {
+	transport := proxy.NewTCPTransport(9836)
+	pool := proxy.NewConnPool(transport)
+	defer pool.Close()
+
+	cid := uint32(13)
+	agentID := "agent-approval-required"
+	tenantID := "0f000000-0000-4000-8000-000000000013"
+
+	store := &mockAgentStore{
+		agents: map[string]*orchestrator.AgentInstance{
+			agentID: {
+				ID:       agentID,
+				TenantID: &tenantID,
+				VsockCID: &cid,
+				Status:   orchestrator.StatusRunning,
+			},
+		},
+	}
+	activityLogger := &mockActivityLogger{}
+
+	handler := proxy.NewHandler(pool, store, proxy.HandlerConfig{
+		MessageTimeout: 5 * time.Second,
+	}, nil, nil).WithActivityLogger(activityLogger)
+
+	ctx := context.Background()
+	ln, listenErr := transport.Listen(ctx, cid)
+	require.NoError(t, listenErr)
+	defer ln.Close()
+
+	go func() {
+		conn, err := ln.Accept()
+		if err != nil {
+			return
+		}
+		defer conn.Close()
+
+		ac := proxy.NewAgentConn(conn)
+		frame, err := ac.Recv(ctx)
+		if err != nil {
+			return
+		}
+
+		_ = ac.Send(ctx, proxy.Frame{
+			Type: proxy.TypeRuntimeEvent,
+			ID:   frame.ID,
+			Payload: json.RawMessage(`{
+				"event_type":"connector.awaiting_approval",
+				"kind":"connector.called",
+				"title":"Connector write waiting for approval",
+				"summary":"CRM contact update requires review before execution.",
+				"status":"approval_required",
+				"risk_class":"external_writes",
+				"runtime_source":"openclaw",
+				"metadata":{"tool_name":"update_contact","connector_name":"crm-api"}
+			}`),
+		})
+		_ = ac.Send(ctx, proxy.Frame{
+			Type: proxy.TypeApprovalRequired,
+			ID:   frame.ID,
+			Payload: json.RawMessage(`{
+				"connector_id":"connector-crm",
+				"connector_name":"crm-api",
+				"tool_name":"update_contact",
+				"arguments":"{\"id\":\"123\"}",
+				"risk_class":"external_writes",
+				"target_type":"crm_record",
+				"target_label_template":"Contact {{id}}",
+				"approval_summary_template":"Update CRM contact"
+			}`),
+		})
+	}()
+
+	req := httptest.NewRequest("POST", "/agents/"+agentID+"/message", bytes.NewBufferString(`{"role":"user","content":"update the CRM contact"}`))
+	req.SetPathValue("id", agentID)
+	req = withTestAuth(req, tenantID)
+	w := httptest.NewRecorder()
+
+	handler.HandleMessage(w, req)
+
+	require.Equal(t, http.StatusAccepted, w.Code)
+	var resp map[string]any
+	require.NoError(t, json.Unmarshal(w.Body.Bytes(), &resp))
+	assert.Equal(t, "awaiting_approval", resp["status"])
+	assert.Equal(t, "crm-api", resp["connector_name"])
+	assert.Equal(t, "update_contact", resp["tool_name"])
+	assert.Equal(t, "external_writes", resp["risk_class"])
+
+	require.Len(t, activityLogger.events, 2)
+	waitingEvent := activityLogger.events[1]
+	assert.Equal(t, activity.KindConnectorCalled, waitingEvent.Kind)
+	assert.Equal(t, activity.StatusApprovalRequired, waitingEvent.Status)
+	assert.Equal(t, "connector.awaiting_approval", waitingEvent.InternalEventType)
+}
+
 func TestHandleStream_ForwardsRuntimeEvent(t *testing.T) {
 	transport := proxy.NewTCPTransport(9831)
 	pool := proxy.NewConnPool(transport)

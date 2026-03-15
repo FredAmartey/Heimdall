@@ -287,7 +287,7 @@ func run() error {
 			timeout: time.Duration(cfg.Proxy.ConfigTimeout) * time.Second,
 		}
 
-		agentHandler = orchestrator.NewHandler(orchManager, pusher, auditLogger, connectors.NewStore(), pool)
+		agentHandler = orchestrator.NewHandler(orchManager, pusher, auditLogger, connectors.NewStore(), pool).WithPolicyStore(policies.NewStore())
 
 		userContextStore = proxy.NewDBUserContextStore(pool)
 		proxyHandler = proxy.NewHandler(connPool, orchManager, proxy.HandlerConfig{

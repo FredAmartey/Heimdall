@@ -24,11 +24,22 @@ type AgentConfig struct {
 
 // AgentConnector represents an MCP connector available for tool execution.
 type AgentConnector struct {
-	Name     string          `json:"name"`
-	Type     string          `json:"type"`
-	Endpoint string          `json:"endpoint"`
-	Auth     json.RawMessage `json:"auth"`
-	Tools    []string        `json:"tools"`
+	ID            string                  `json:"id,omitempty"`
+	Name          string                  `json:"name"`
+	Type          string                  `json:"type"`
+	Endpoint      string                  `json:"endpoint"`
+	Auth          json.RawMessage         `json:"auth"`
+	Tools         []string                `json:"tools"`
+	GovernedTools map[string]GovernedTool `json:"governed_tools,omitempty"`
+}
+
+type GovernedTool struct {
+	ActionType              string `json:"action_type,omitempty"`
+	RiskClass               string `json:"risk_class,omitempty"`
+	Decision                string `json:"decision,omitempty"`
+	TargetType              string `json:"target_type,omitempty"`
+	TargetLabelTemplate     string `json:"target_label_template,omitempty"`
+	ApprovalSummaryTemplate string `json:"approval_summary_template,omitempty"`
 }
 
 // Agent is the in-guest valinor-agent that bridges the control plane to OpenClaw.

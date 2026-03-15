@@ -404,6 +404,21 @@ func (h *Handler) HandleMessage(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 
+		case TypeApprovalRequired:
+			var pending ApprovalRequiredPayload
+			if err := json.Unmarshal(reply.Payload, &pending); err != nil {
+				httpjson.WriteJSON(w, http.StatusBadGateway, map[string]string{"error": "invalid approval payload"})
+				return
+			}
+			httpjson.WriteJSON(w, http.StatusAccepted, map[string]any{
+				"status":         "awaiting_approval",
+				"connector_id":   pending.ConnectorID,
+				"connector_name": pending.ConnectorName,
+				"tool_name":      pending.ToolName,
+				"risk_class":     pending.RiskClass,
+			})
+			return
+
 		case TypeToolExecuted:
 			h.logToolAudit(r, "tool.executed", agentID, agentTenant, reply.Payload)
 			continue
@@ -582,6 +597,13 @@ func (h *Handler) HandleStream(w http.ResponseWriter, r *http.Request) {
 				h.activity.Log(r.Context(), event)
 			}
 			writeSSE(w, "error", json.RawMessage(`{"error":"session terminated for security reasons"}`))
+			if flusher != nil {
+				flusher.Flush()
+			}
+			return
+
+		case TypeApprovalRequired:
+			writeSSE(w, "approval_required", reply.Payload)
 			if flusher != nil {
 				flusher.Flush()
 			}

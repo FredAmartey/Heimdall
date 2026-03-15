@@ -33,6 +33,7 @@ type ConnectorTool struct {
 
 // AgentConnectorConfig is the reduced connector shape injected into agent config.
 type AgentConnectorConfig struct {
+	ID       string          `json:"id,omitempty"`
 	Name     string          `json:"name"`
 	Type     string          `json:"type"`
 	Endpoint string          `json:"endpoint"`
