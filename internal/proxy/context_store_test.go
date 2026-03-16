@@ -20,7 +20,7 @@ func setupContextStoreTestDB(t *testing.T) (*database.Pool, func()) {
 
 	container, err := postgres.Run(ctx,
 		"postgres:16-alpine",
-		postgres.WithDatabase("valinor_test"),
+		postgres.WithDatabase("heimdall_test"),
 		postgres.WithUsername("test"),
 		postgres.WithPassword("test"),
 		testcontainers.WithWaitStrategy(

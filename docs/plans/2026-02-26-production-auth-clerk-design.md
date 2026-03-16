@@ -119,7 +119,7 @@ Add Clerk as a second provider alongside the existing credentials provider:
 ```typescript
 providers: [
   // Dev mode (when env var is set)
-  ...(process.env.VALINOR_DEV_MODE ? [Credentials({...})] : []),
+  ...(process.env.HEIMDALL_DEV_MODE ? [Credentials({...})] : []),
 
   // Production OIDC via Clerk (when env vars are set)
   ...(process.env.AUTH_CLERK_ISSUER ? [{
@@ -138,7 +138,7 @@ providers: [
 After Clerk authenticates, the NextAuth `signIn` callback intercepts the OIDC response:
 
 1. Extract `id_token` from the account object (`account.id_token`)
-2. Call `POST ${VALINOR_API_URL}/auth/exchange` with the id_token
+2. Call `POST ${HEIMDALL_API_URL}/auth/exchange` with the id_token
 3. Attach the returned Heimdall tokens to the user object
 4. The existing `jwt` callback stores them in the session token
 
@@ -146,7 +146,7 @@ This mirrors how the dev credentials provider works — both paths produce the s
 
 ### Login Page
 
-- **Dev mode only** (`VALINOR_DEV_MODE` set): Email input + "Sign in (Dev Mode)" button (current)
+- **Dev mode only** (`HEIMDALL_DEV_MODE` set): Email input + "Sign in (Dev Mode)" button (current)
 - **Clerk only** (`AUTH_CLERK_ISSUER` set): "Sign in" button → `signIn("clerk")`
 - **Both**: Show both options (useful for local testing of the Clerk flow)
 
@@ -198,7 +198,7 @@ Platform admins (matched by `oidc_issuer` + `oidc_subject` in the users table wi
 ### Dashboard
 
 - Login page renders Clerk button when `AUTH_CLERK_ISSUER` is set
-- Login page renders dev mode when `VALINOR_DEV_MODE` is set
+- Login page renders dev mode when `HEIMDALL_DEV_MODE` is set
 - signIn callback exchanges id_token for Heimdall tokens (mock API)
 - Session contains Heimdall JWT after Clerk sign-in
 

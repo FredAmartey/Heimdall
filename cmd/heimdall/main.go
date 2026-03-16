@@ -49,7 +49,7 @@ func run() error {
 	logger := telemetry.NewLogger(cfg.Log.Level, cfg.Log.Format)
 	telemetry.SetDefault(logger)
 
-	slog.Info("valinor starting",
+	slog.Info("heimdall starting",
 		"version", "0.2.0",
 		"port", cfg.Server.Port,
 	)

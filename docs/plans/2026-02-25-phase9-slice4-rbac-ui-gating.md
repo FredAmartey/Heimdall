@@ -100,7 +100,7 @@ declare module "@auth/core/jwt" {
 
 **Step 2: Add a decode helper above `authConfig`**
 
-Insert this function between the `declare module` blocks and `const VALINOR_API_URL`:
+Insert this function between the `declare module` blocks and `const HEIMDALL_API_URL`:
 
 ```typescript
 function decodeJwtRoles(token: string): string[] {

@@ -4,7 +4,7 @@
 
 **Goal:** Encrypt tenant-scoped channel provider secrets at rest while preserving forward-only compatibility for existing plaintext rows.
 
-**Architecture:** Add AES-256-GCM encryption/decryption utilities in `internal/channels`, configure a credentials key via `VALINOR_CHANNELS_CREDENTIALS_KEY`, and wire channel store read/write paths to encrypt on write and decrypt on read with plaintext fallback for legacy values.
+**Architecture:** Add AES-256-GCM encryption/decryption utilities in `internal/channels`, configure a credentials key via `HEIMDALL_CHANNELS_CREDENTIALS_KEY`, and wire channel store read/write paths to encrypt on write and decrypt on read with plaintext fallback for legacy values.
 
 **Tech Stack:** Go, standard library crypto (`aes`, `cipher` GCM), PostgreSQL, existing channel store + config loaders.
 
@@ -20,7 +20,7 @@
 
 Add config tests asserting:
 - default `cfg.Channels.Credentials.Key == ""`
-- env override from `VALINOR_CHANNELS_CREDENTIALS_KEY`
+- env override from `HEIMDALL_CHANNELS_CREDENTIALS_KEY`
 
 **Step 2: Run tests to verify fail**
 

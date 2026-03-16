@@ -361,7 +361,7 @@ declare module "@auth/core/jwt" {
   }
 }
 
-const VALINOR_API_URL = process.env.VALINOR_API_URL ?? "http://localhost:8080"
+const HEIMDALL_API_URL = process.env.HEIMDALL_API_URL ?? "http://localhost:8080"
 
 export const authConfig: NextAuthConfig = {
   providers: [
@@ -372,7 +372,7 @@ export const authConfig: NextAuthConfig = {
       async authorize(credentials) {
         if (!credentials?.email) return null
 
-        const res = await fetch(`${VALINOR_API_URL}/auth/dev/login`, {
+        const res = await fetch(`${HEIMDALL_API_URL}/auth/dev/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: credentials.email }),
@@ -413,7 +413,7 @@ export const authConfig: NextAuthConfig = {
 
       // Token expired: refresh via Heimdall API
       try {
-        const res = await fetch(`${VALINOR_API_URL}/auth/token/refresh`, {
+        const res = await fetch(`${HEIMDALL_API_URL}/auth/token/refresh`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refresh_token: token.refreshToken }),

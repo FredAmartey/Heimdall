@@ -368,7 +368,7 @@ Create `dashboard/src/lib/api.ts`:
 import { auth } from "@/lib/auth"
 import type { ApiErrorResponse } from "@/lib/types"
 
-const API_BASE_URL = process.env.VALINOR_API_URL ?? "http://localhost:8080"
+const API_BASE_URL = process.env.HEIMDALL_API_URL ?? "http://localhost:8080"
 
 export class ApiError extends Error {
   constructor(
@@ -556,7 +556,7 @@ Create `dashboard/src/lib/api-client.ts`:
 import { ApiError, buildUrl } from "@/lib/api"
 import type { ApiErrorResponse } from "@/lib/types"
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_VALINOR_API_URL ?? "http://localhost:8080"
+const API_BASE_URL = process.env.NEXT_PUBLIC_HEIMDALL_API_URL ?? "http://localhost:8080"
 
 /**
  * Client-side API function. Used in "use client" components via TanStack Query.
@@ -635,8 +635,8 @@ git commit -m "feat(dashboard): add client-side API client for TanStack Query"
 Create `dashboard/.env.local`:
 
 ```
-VALINOR_API_URL=http://localhost:8080
-NEXT_PUBLIC_VALINOR_API_URL=http://localhost:8080
+HEIMDALL_API_URL=http://localhost:8080
+NEXT_PUBLIC_HEIMDALL_API_URL=http://localhost:8080
 AUTH_SECRET=dev-secret-change-in-production-must-be-32-chars
 AUTH_URL=http://localhost:3000
 ```
@@ -677,7 +677,7 @@ declare module "next-auth/jwt" {
   }
 }
 
-const VALINOR_API_URL = process.env.VALINOR_API_URL ?? "http://localhost:8080"
+const HEIMDALL_API_URL = process.env.HEIMDALL_API_URL ?? "http://localhost:8080"
 
 export const authConfig: NextAuthConfig = {
   providers: [
@@ -685,12 +685,12 @@ export const authConfig: NextAuthConfig = {
       id: "heimdall",
       name: "Heimdall",
       type: "oidc",
-      issuer: VALINOR_API_URL,
-      clientId: process.env.AUTH_VALINOR_CLIENT_ID ?? "dashboard",
-      clientSecret: process.env.AUTH_VALINOR_CLIENT_SECRET ?? "",
-      authorization: { url: `${VALINOR_API_URL}/auth/login`, params: { scope: "openid profile email" } },
-      token: { url: `${VALINOR_API_URL}/auth/callback` },
-      userinfo: { url: `${VALINOR_API_URL}/api/v1/users/me` },
+      issuer: HEIMDALL_API_URL,
+      clientId: process.env.AUTH_HEIMDALL_CLIENT_ID ?? "dashboard",
+      clientSecret: process.env.AUTH_HEIMDALL_CLIENT_SECRET ?? "",
+      authorization: { url: `${HEIMDALL_API_URL}/auth/login`, params: { scope: "openid profile email" } },
+      token: { url: `${HEIMDALL_API_URL}/auth/callback` },
+      userinfo: { url: `${HEIMDALL_API_URL}/api/v1/users/me` },
       profile(profile) {
         return {
           id: profile.sub ?? profile.id,
@@ -722,7 +722,7 @@ export const authConfig: NextAuthConfig = {
 
       // Token expired: refresh via Heimdall API
       try {
-        const res = await fetch(`${VALINOR_API_URL}/auth/token/refresh`, {
+        const res = await fetch(`${HEIMDALL_API_URL}/auth/token/refresh`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refresh_token: token.refreshToken }),

@@ -64,7 +64,7 @@ Both cleared → clean slate, no auto-login
 
 Full-page layout: subtle gradient background (zinc-950 → zinc-900) with centered floating card. Shared `AuthCard` wrapper, `SocialButtons` (Google + GitHub), `AuthDivider` ("or continue with" separator).
 
-Dev mode coexistence: when `NEXT_PUBLIC_VALINOR_DEV_MODE=true`, login shows email-only form without Clerk SDK.
+Dev mode coexistence: when `NEXT_PUBLIC_HEIMDALL_DEV_MODE=true`, login shows email-only form without Clerk SDK.
 
 ## Backend Changes
 

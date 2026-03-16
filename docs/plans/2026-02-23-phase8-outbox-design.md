@@ -151,7 +151,7 @@ Add channel outbox worker config defaults:
 - `channels.outbox.base_retry_seconds` (base retry interval)
 - jitter bounds
 
-Environment variable overrides follow existing `VALINOR_...` mapping.
+Environment variable overrides follow existing `HEIMDALL_...` mapping.
 
 ## Observability
 

@@ -53,7 +53,7 @@ func TestHandleImpersonate_NoIdentity(t *testing.T) {
 }
 
 func TestHandleImpersonate_Success(t *testing.T) {
-	tokenSvc := auth.NewTokenService("test-secret-key-32-bytes-long!!", "valinor", 1, 24)
+	tokenSvc := auth.NewTokenService("test-secret-key-32-bytes-long!!", "heimdall", 1, 24)
 	// pool is nil — tenant existence check is skipped when pool is nil
 	h := NewImpersonateHandler(tokenSvc, nil, nil)
 

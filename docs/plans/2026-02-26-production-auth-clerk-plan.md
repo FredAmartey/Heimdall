@@ -917,7 +917,7 @@ import type { NextAuthConfig, Account } from "next-auth"
 
 // ... (keep existing type declarations lines 6-54 unchanged) ...
 
-const VALINOR_API_URL = process.env.VALINOR_API_URL ?? "http://localhost:8080"
+const HEIMDALL_API_URL = process.env.HEIMDALL_API_URL ?? "http://localhost:8080"
 
 // Exchange an external OIDC id_token for Heimdall platform tokens.
 async function exchangeIDToken(idToken: string): Promise<{
@@ -926,7 +926,7 @@ async function exchangeIDToken(idToken: string): Promise<{
   expiresIn: number
   user: { id: string; email: string; display_name: string; tenant_id: string; is_platform_admin: boolean }
 } | null> {
-  const res = await fetch(`${VALINOR_API_URL}/auth/exchange`, {
+  const res = await fetch(`${HEIMDALL_API_URL}/auth/exchange`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id_token: idToken }),
@@ -940,8 +940,8 @@ async function exchangeIDToken(idToken: string): Promise<{
 
 export const authConfig: NextAuthConfig = {
   providers: [
-    // Dev mode credentials (when VALINOR_DEV_MODE is set)
-    ...(process.env.VALINOR_DEV_MODE
+    // Dev mode credentials (when HEIMDALL_DEV_MODE is set)
+    ...(process.env.HEIMDALL_DEV_MODE
       ? [
           Credentials({
             credentials: {
@@ -950,7 +950,7 @@ export const authConfig: NextAuthConfig = {
             async authorize(credentials) {
               if (!credentials?.email) return null
 
-              const res = await fetch(`${VALINOR_API_URL}/auth/dev/login`, {
+              const res = await fetch(`${HEIMDALL_API_URL}/auth/dev/login`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email: credentials.email }),
@@ -1042,7 +1042,7 @@ export const authConfig: NextAuthConfig = {
 
       // Token expired: refresh via Heimdall API
       try {
-        const res = await fetch(`${VALINOR_API_URL}/auth/token/refresh`, {
+        const res = await fetch(`${HEIMDALL_API_URL}/auth/token/refresh`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refresh_token: token.refreshToken }),
@@ -1105,9 +1105,9 @@ Add Clerk env vars to `dashboard/.env.example`:
 
 ```
 # Dev mode (local development)
-VALINOR_DEV_MODE=true
-VALINOR_API_URL=http://localhost:8080
-NEXT_PUBLIC_VALINOR_API_URL=http://localhost:8080
+HEIMDALL_DEV_MODE=true
+HEIMDALL_API_URL=http://localhost:8080
+NEXT_PUBLIC_HEIMDALL_API_URL=http://localhost:8080
 AUTH_SECRET=dev-secret-do-not-use-in-production-32ch
 AUTH_TRUST_HOST=true
 AUTH_URL=http://localhost:3000
@@ -1148,7 +1148,7 @@ import { signIn } from "next-auth/react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
-const isDevMode = process.env.NEXT_PUBLIC_VALINOR_DEV_MODE === "true"
+const isDevMode = process.env.NEXT_PUBLIC_HEIMDALL_DEV_MODE === "true"
 const isClerkEnabled = !!process.env.NEXT_PUBLIC_AUTH_CLERK_ENABLED
 
 export default function LoginPage() {
@@ -1266,7 +1266,7 @@ export default function LoginPage() {
 
 Add to `dashboard/.env.example`:
 ```
-NEXT_PUBLIC_VALINOR_DEV_MODE=true
+NEXT_PUBLIC_HEIMDALL_DEV_MODE=true
 # NEXT_PUBLIC_AUTH_CLERK_ENABLED=true
 ```
 

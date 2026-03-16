@@ -2,7 +2,7 @@
 
 ## Problem
 
-The dashboard's NextAuth configuration treats Heimdall as an OIDC server (`type: "oidc"`, `issuer: VALINOR_API_URL`), but Heimdall is an OIDC client (relying party). NextAuth expects a discovery document at `/.well-known/openid-configuration` which Heimdall does not serve. The dashboard cannot authenticate.
+The dashboard's NextAuth configuration treats Heimdall as an OIDC server (`type: "oidc"`, `issuer: HEIMDALL_API_URL`), but Heimdall is an OIDC client (relying party). NextAuth expects a discovery document at `/.well-known/openid-configuration` which Heimdall does not serve. The dashboard cannot authenticate.
 
 ## Solution
 
@@ -58,7 +58,7 @@ providers: [
       email: { label: "Email", type: "email" },
     },
     async authorize(credentials) {
-      const res = await fetch(`${VALINOR_API_URL}/auth/dev/login`, {
+      const res = await fetch(`${HEIMDALL_API_URL}/auth/dev/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: credentials.email }),

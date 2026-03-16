@@ -20,12 +20,12 @@ import (
 func setupWorkerTestDB(t *testing.T) (*database.Pool, func()) {
 	t.Helper()
 	ctx := context.Background()
-	testUser := "valinor_" + uuid.NewString()[:8]
+	testUser := "heimdall_" + uuid.NewString()[:8]
 	testPassword := uuid.NewString()
 
 	container, err := postgres.Run(ctx,
 		"postgres:16-alpine",
-		postgres.WithDatabase("valinor_test"),
+		postgres.WithDatabase("heimdall_test"),
 		postgres.WithUsername(testUser),
 		postgres.WithPassword(testPassword),
 		testcontainers.WithWaitStrategy(

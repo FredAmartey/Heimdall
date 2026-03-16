@@ -979,7 +979,7 @@ import { AuthDivider } from "@/components/auth/auth-divider"
 import { getClerk } from "@/lib/clerk"
 import Link from "next/link"
 
-const isDevMode = process.env.NEXT_PUBLIC_VALINOR_DEV_MODE === "true"
+const isDevMode = process.env.NEXT_PUBLIC_HEIMDALL_DEV_MODE === "true"
 const isClerkEnabled = !!process.env.NEXT_PUBLIC_AUTH_CLERK_ENABLED
 const tenantSlug = process.env.NEXT_PUBLIC_TENANT_SLUG
 
@@ -1533,7 +1533,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { AuthCard } from "@/components/auth/auth-card"
 
-const API_URL = process.env.NEXT_PUBLIC_VALINOR_API_URL ?? "http://localhost:8080"
+const API_URL = process.env.NEXT_PUBLIC_HEIMDALL_API_URL ?? "http://localhost:8080"
 
 export default function TeamPage() {
   const { data: session, update } = useSession()

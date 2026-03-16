@@ -141,11 +141,11 @@ func TestLoad_Defaults(t *testing.T) {
 }
 
 func TestLoad_EnvOverrides(t *testing.T) {
-	os.Setenv("VALINOR_SERVER_PORT", "9090")
-	os.Setenv("VALINOR_DATABASE_URL", "postgres://test:test@localhost:5432/heimdall_test")
+	os.Setenv("HEIMDALL_SERVER_PORT", "9090")
+	os.Setenv("HEIMDALL_DATABASE_URL", "postgres://test:test@localhost:5432/heimdall_test")
 	defer func() {
-		os.Unsetenv("VALINOR_SERVER_PORT")
-		os.Unsetenv("VALINOR_DATABASE_URL")
+		os.Unsetenv("HEIMDALL_SERVER_PORT")
+		os.Unsetenv("HEIMDALL_DATABASE_URL")
 	}()
 
 	cfg, err := config.Load()
@@ -230,10 +230,10 @@ func Load(configPaths ...string) (*Config, error) {
 	}
 
 	// Environment variables override everything
-	// VALINOR_SERVER_PORT -> server.port
-	k.Load(env.Provider("VALINOR_", ".", func(s string) string {
+	// HEIMDALL_SERVER_PORT -> server.port
+	k.Load(env.Provider("HEIMDALL_", ".", func(s string) string {
 		return strings.Replace(
-			strings.ToLower(strings.TrimPrefix(s, "VALINOR_")),
+			strings.ToLower(strings.TrimPrefix(s, "HEIMDALL_")),
 			"_", ".", -1,
 		)
 	}), nil)
@@ -1461,7 +1461,7 @@ docker run -d --name heimdall-postgres \
 **Step 2: Run Heimdall with database**
 
 ```bash
-VALINOR_DATABASE_URL="postgres://heimdall:heimdall@localhost:5432/heimdall?sslmode=disable" \
+HEIMDALL_DATABASE_URL="postgres://heimdall:heimdall@localhost:5432/heimdall?sslmode=disable" \
   go run ./cmd/heimdall
 ```
 Expected output (JSON logs):

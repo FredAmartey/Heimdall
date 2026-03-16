@@ -36,17 +36,17 @@ func TestLoad_AuthDefaults(t *testing.T) {
 }
 
 func TestLoad_AuthEnvOverrides(t *testing.T) {
-	os.Setenv("VALINOR_AUTH_DEVMODE", "true")
-	os.Setenv("VALINOR_AUTH_OIDC_ISSUERURL", "https://accounts.google.com")
-	os.Setenv("VALINOR_AUTH_OIDC_CLIENTID", "test-client-id")
-	os.Setenv("VALINOR_AUTH_OIDC_CLIENTSECRET", "test-secret")
-	os.Setenv("VALINOR_AUTH_JWT_SIGNINGKEY", "super-secret-key-at-least-32-chars!!")
+	os.Setenv("HEIMDALL_AUTH_DEVMODE", "true")
+	os.Setenv("HEIMDALL_AUTH_OIDC_ISSUERURL", "https://accounts.google.com")
+	os.Setenv("HEIMDALL_AUTH_OIDC_CLIENTID", "test-client-id")
+	os.Setenv("HEIMDALL_AUTH_OIDC_CLIENTSECRET", "test-secret")
+	os.Setenv("HEIMDALL_AUTH_JWT_SIGNINGKEY", "super-secret-key-at-least-32-chars!!")
 	defer func() {
-		os.Unsetenv("VALINOR_AUTH_DEVMODE")
-		os.Unsetenv("VALINOR_AUTH_OIDC_ISSUERURL")
-		os.Unsetenv("VALINOR_AUTH_OIDC_CLIENTID")
-		os.Unsetenv("VALINOR_AUTH_OIDC_CLIENTSECRET")
-		os.Unsetenv("VALINOR_AUTH_JWT_SIGNINGKEY")
+		os.Unsetenv("HEIMDALL_AUTH_DEVMODE")
+		os.Unsetenv("HEIMDALL_AUTH_OIDC_ISSUERURL")
+		os.Unsetenv("HEIMDALL_AUTH_OIDC_CLIENTID")
+		os.Unsetenv("HEIMDALL_AUTH_OIDC_CLIENTSECRET")
+		os.Unsetenv("HEIMDALL_AUTH_JWT_SIGNINGKEY")
 	}()
 
 	cfg, err := config.Load()
@@ -2169,7 +2169,7 @@ Expected: builds successfully.
 
 ```bash
 # Start server in dev mode
-VALINOR_AUTH_DEVMODE=true ./bin/heimdall &
+HEIMDALL_AUTH_DEVMODE=true ./bin/heimdall &
 
 # Test unauthenticated request
 curl -s http://localhost:8080/healthz | jq .

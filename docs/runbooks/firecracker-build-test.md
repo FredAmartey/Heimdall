@@ -40,10 +40,10 @@ This will:
 Runtime override knobs (must provide matching verification values):
 
 ```bash
-VALINOR_GUEST_NODE_VERSION=v22.22.0
-VALINOR_GUEST_NODE_SHA256=<sha256-for-arch>
-VALINOR_GUEST_OPENCLAW_VERSION=2026.2.23
-VALINOR_GUEST_OPENCLAW_INTEGRITY=sha512-...
+HEIMDALL_GUEST_NODE_VERSION=v22.22.0
+HEIMDALL_GUEST_NODE_SHA256=<sha256-for-arch>
+HEIMDALL_GUEST_OPENCLAW_VERSION=2026.2.23
+HEIMDALL_GUEST_OPENCLAW_INTEGRITY=sha512-...
 ```
 
 If you want individual steps:
@@ -98,10 +98,10 @@ What this covers:
 ## 5) Real Firecracker end-to-end test (Linux, opt-in)
 
 This uses the actual Firecracker binary and assets. Required environment:
-- `VALINOR_FIRECRACKER_E2E=1`
-- `VALINOR_FIRECRACKER_KERNEL_PATH=/absolute/path/to/vmlinux`
-- `VALINOR_FIRECRACKER_ROOT_DRIVE=/absolute/path/to/rootfs.ext4`
-- optional `VALINOR_FIRECRACKER_BIN=/absolute/path/to/firecracker`
+- `HEIMDALL_FIRECRACKER_E2E=1`
+- `HEIMDALL_FIRECRACKER_KERNEL_PATH=/absolute/path/to/vmlinux`
+- `HEIMDALL_FIRECRACKER_ROOT_DRIVE=/absolute/path/to/rootfs.ext4`
+- optional `HEIMDALL_FIRECRACKER_BIN=/absolute/path/to/firecracker`
 
 Before running e2e:
 
@@ -112,9 +112,9 @@ Before running e2e:
 Run:
 
 ```bash
-VALINOR_FIRECRACKER_E2E=1 \
-VALINOR_FIRECRACKER_KERNEL_PATH=/var/lib/heimdall/vmlinux \
-VALINOR_FIRECRACKER_ROOT_DRIVE=/var/lib/heimdall/rootfs.ext4 \
+HEIMDALL_FIRECRACKER_E2E=1 \
+HEIMDALL_FIRECRACKER_KERNEL_PATH=/var/lib/heimdall/vmlinux \
+HEIMDALL_FIRECRACKER_ROOT_DRIVE=/var/lib/heimdall/rootfs.ext4 \
 go test ./internal/orchestrator -run TestFirecrackerDriver_RealBinaryLifecycle -v
 ```
 
@@ -201,9 +201,9 @@ go build ./...
 go test ./internal/orchestrator -run 'TestFirecrackerDriver_(Start|Reattach|Cleanup)' -v
 
 # Real Firecracker e2e
-VALINOR_FIRECRACKER_E2E=1 \
-VALINOR_FIRECRACKER_KERNEL_PATH=/var/lib/heimdall/vmlinux \
-VALINOR_FIRECRACKER_ROOT_DRIVE=/var/lib/heimdall/rootfs.ext4 \
+HEIMDALL_FIRECRACKER_E2E=1 \
+HEIMDALL_FIRECRACKER_KERNEL_PATH=/var/lib/heimdall/vmlinux \
+HEIMDALL_FIRECRACKER_ROOT_DRIVE=/var/lib/heimdall/rootfs.ext4 \
 go test ./internal/orchestrator -run TestFirecrackerDriver_RealBinaryLifecycle -v
 ```
 
