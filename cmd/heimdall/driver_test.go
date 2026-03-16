@@ -50,7 +50,7 @@ func TestSelectVMDriver_FirecrackerPlatformAndConfig(t *testing.T) {
 	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0o644))
 	require.NoError(t, os.WriteFile(rootDrive, []byte("rootfs"), 0o644))
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "true")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "true")
 	cfg.Firecracker = config.FirecrackerConfig{
 		KernelPath: kernelPath,
 		RootDrive:  rootDrive,
@@ -88,7 +88,7 @@ func TestSelectVMDriver_FirecrackerMissingArtifactsOnLinux(t *testing.T) {
 		t.Skip("linux-only validation")
 	}
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "true")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "true")
 	_, err := selectVMDriver(config.OrchestratorConfig{
 		Driver: "firecracker",
 		Firecracker: config.FirecrackerConfig{
@@ -111,7 +111,7 @@ func TestSelectVMDriver_FirecrackerMissingBinaryOnLinux(t *testing.T) {
 	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0o644))
 	require.NoError(t, os.WriteFile(rootDrive, []byte("rootfs"), 0o644))
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "definitely-not-a-real-firecracker-bin")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "definitely-not-a-real-firecracker-bin")
 	_, err := selectVMDriver(config.OrchestratorConfig{
 		Driver: "firecracker",
 		Firecracker: config.FirecrackerConfig{
@@ -134,7 +134,7 @@ func TestSelectVMDriver_FirecrackerJailerEnabledOnLinux(t *testing.T) {
 	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0o644))
 	require.NoError(t, os.WriteFile(rootDrive, []byte("rootfs"), 0o644))
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "true")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "true")
 	driver, err := selectVMDriver(config.OrchestratorConfig{
 		Driver: "firecracker",
 		Firecracker: config.FirecrackerConfig{
@@ -169,7 +169,7 @@ func TestSelectVMDriver_FirecrackerJailerMissingChrootOnLinux(t *testing.T) {
 	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0o644))
 	require.NoError(t, os.WriteFile(rootDrive, []byte("rootfs"), 0o644))
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "true")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "true")
 	_, err := selectVMDriver(config.OrchestratorConfig{
 		Driver: "firecracker",
 		Firecracker: config.FirecrackerConfig{
@@ -198,7 +198,7 @@ func TestSelectVMDriver_FirecrackerJailerDaemonizeOnLinux(t *testing.T) {
 	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0o644))
 	require.NoError(t, os.WriteFile(rootDrive, []byte("rootfs"), 0o644))
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "true")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "true")
 	driver, err := selectVMDriver(config.OrchestratorConfig{
 		Driver: "firecracker",
 		Firecracker: config.FirecrackerConfig{
@@ -234,7 +234,7 @@ func TestSelectVMDriver_FirecrackerNetworkPolicyRequiresJailerInProd(t *testing.
 	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0o644))
 	require.NoError(t, os.WriteFile(rootDrive, []byte("rootfs"), 0o644))
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "true")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "true")
 	_, err := selectVMDriver(config.OrchestratorConfig{
 		Driver: "firecracker",
 		Firecracker: config.FirecrackerConfig{
@@ -260,7 +260,7 @@ func TestSelectVMDriver_FirecrackerNetworkPolicyRequiresNetNSInProd(t *testing.T
 	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0o644))
 	require.NoError(t, os.WriteFile(rootDrive, []byte("rootfs"), 0o644))
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "true")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "true")
 	_, err := selectVMDriver(config.OrchestratorConfig{
 		Driver: "firecracker",
 		Firecracker: config.FirecrackerConfig{
@@ -294,7 +294,7 @@ func TestSelectVMDriver_FirecrackerNetworkPolicyRequiresTapDeviceInProd(t *testi
 	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0o644))
 	require.NoError(t, os.WriteFile(rootDrive, []byte("rootfs"), 0o644))
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "true")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "true")
 	_, err := selectVMDriver(config.OrchestratorConfig{
 		Driver: "firecracker",
 		Firecracker: config.FirecrackerConfig{
@@ -328,7 +328,7 @@ func TestSelectVMDriver_FirecrackerRejectsIsolatedNetworkPolicyInProd(t *testing
 	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0o644))
 	require.NoError(t, os.WriteFile(rootDrive, []byte("rootfs"), 0o644))
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "true")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "true")
 	_, err := selectVMDriver(config.OrchestratorConfig{
 		Driver: "firecracker",
 		Firecracker: config.FirecrackerConfig{
@@ -354,7 +354,7 @@ func TestSelectVMDriver_FirecrackerAllowsIsolatedNetworkPolicyInDevMode(t *testi
 	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0o644))
 	require.NoError(t, os.WriteFile(rootDrive, []byte("rootfs"), 0o644))
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "true")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "true")
 	driver, err := selectVMDriver(config.OrchestratorConfig{
 		Driver: "firecracker",
 		Firecracker: config.FirecrackerConfig{
@@ -373,7 +373,7 @@ func TestSelectVMDriver_Docker(t *testing.T) {
 	cfg := config.OrchestratorConfig{
 		Driver: "docker",
 		Docker: config.DockerConfig{
-			Image:            "valinor/agent:latest",
+			Image:            "heimdall/agent:latest",
 			NetworkMode:      "per-tenant",
 			DefaultCPUs:      1,
 			DefaultMemoryMB:  512,
@@ -414,7 +414,7 @@ func TestSelectVMDriver_FirecrackerWorkspaceQuotaMustBePositive(t *testing.T) {
 	require.NoError(t, os.WriteFile(kernelPath, []byte("kernel"), 0o644))
 	require.NoError(t, os.WriteFile(rootDrive, []byte("rootfs"), 0o644))
 
-	t.Setenv("VALINOR_FIRECRACKER_BIN", "true")
+	t.Setenv("HEIMDALL_FIRECRACKER_BIN", "true")
 	_, err := selectVMDriver(config.OrchestratorConfig{
 		Driver: "firecracker",
 		Firecracker: config.FirecrackerConfig{
